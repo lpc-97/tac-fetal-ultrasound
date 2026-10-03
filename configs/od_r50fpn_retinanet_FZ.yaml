@@ -1,0 +1,49 @@
+# Second detector: RetinaNet R50-FPN (detectron2 0.5 stock RetinaNet wrapped as RetinaNetTTA), FrozenBN backbone,
+# same data / schedule as the Faster R-CNN source models (od_res50fpn_source_FZ.yaml + train_fz_source.sh):
+# ImageNet MSRA R-50, FREEZE_AT 2, AMP, bs 8, 10k iters, warm-up 1000, wd 1e-4, eval every 1000 iters on VAL.
+MODEL:
+  META_ARCHITECTURE: "RetinaNetTTA"
+  WEIGHTS: "detectron2://ImageNetPretrained/MSRA/R-50.pkl"
+  MASK_ON: False
+  BACKBONE:
+    NAME: "build_retinanet_resnet_fpn_backbone"
+    FREEZE_AT: 2
+  RESNETS:
+    DEPTH: 50
+    NORM: "FrozenBN"
+    OUT_FEATURES: ["res3", "res4", "res5"]
+  FPN:
+    IN_FEATURES: ["res3", "res4", "res5"]
+  ANCHOR_GENERATOR:
+    SIZES: !!python/object/apply:eval ["[[x, x * 2**(1.0/3), x * 2**(2.0/3) ] for x in [32, 64, 128, 256, 512 ]]"]
+  RETINANET:
+    NUM_CLASSES: 9
+    IOU_THRESHOLDS: [0.4, 0.5]
+    IOU_LABELS: [0, -1, 1]
+    SMOOTH_L1_LOSS_BETA: 0.0
+  ROI_HEADS:
+    NUM_CLASSES: 9      # read by the TTA trainers / fusion code (K); RetinaNet itself uses RETINANET.NUM_CLASSES
+DATASETS:
+  TRAIN: ("fetus_4c_c1_train",)
+  TEST: ("fetus_4c_c1_val",)
+SOLVER:
+  AMP:
+    ENABLED: True
+  IMS_PER_BATCH: 8
+  BASE_LR: 0.01
+  MAX_ITER: 10000
+  STEPS: (7000, 9000)
+  WARMUP_ITERS: 1000
+  WEIGHT_DECAY: 0.0001
+  CHECKPOINT_PERIOD: 2500
+SEMISUPNET:
+  Trainer: baseline
+TEST:
+  EVAL_PERIOD: 1000
+INPUT:
+  FORMAT: "RGB"
+  MIN_SIZE_TRAIN: (800,)
+  MIN_SIZE_TEST: 800
+  MAX_SIZE_TRAIN: 1333
+  MAX_SIZE_TEST: 1333
+VERSION: 2

@@ -1,0 +1,39 @@
+    # ---- Test-time Anatomical Canonicalisation (Trainer == 'canon'), adapteacher/engine/tta_canon.py
+    _C.SEMISUPNET.CANON = CN()
+    _C.SEMISUPNET.CANON.ANAT_PRIOR = ''
+    _C.SEMISUPNET.CANON.S0_CALIB = True
+    _C.SEMISUPNET.CANON.MAX_SIZE = 4000
+    _C.SEMISUPNET.CANON.DUMP_PASS1 = False      # dump the first-pass candidates for off-line analysis
+    _C.SEMISUPNET.CANON.MIN_SCORE = 0.3        # candidates used for theta estimation
+    _C.SEMISUPNET.CANON.SIGMA_OBS = 0.10       # observation noise on log-size / log-aspect
+    _C.SEMISUPNET.CANON.SIGMA_U = 1.0          # shrinkage prior on log scale factor
+    _C.SEMISUPNET.CANON.SIGMA_V = 0.3          # shrinkage prior on log aspect factor
+    _C.SEMISUPNET.CANON.OUTLIER_DENSITY = 0.2  # uniform density of false-positive log-sizes
+    _C.SEMISUPNET.CANON.IRLS_ITERS = 3
+    _C.SEMISUPNET.CANON.ASPECT = False
+    _C.SEMISUPNET.CANON.F_MIN = 0.3
+    _C.SEMISUPNET.CANON.F_MAX = 3.0
+    _C.SEMISUPNET.CANON.V_MAX = 0.5
+    _C.SEMISUPNET.CANON.FLIP = True
+    _C.SEMISUPNET.CANON.FLIP0 = False          # also flip the pass-1 view
+    _C.SEMISUPNET.CANON.FUSE_PASS1 = True
+    _C.SEMISUPNET.CANON.ROUNDS = 1             # 2 -> re-estimate theta from the canonical view and re-run if it moved
+    _C.SEMISUPNET.CANON.ROUND_TOL = 1.1
+    _C.SEMISUPNET.CANON.WBF_IOU = 0.55
+    _C.SEMISUPNET.CANON.ANAT_RESCORE = True
+    _C.SEMISUPNET.CANON.ANAT_LAM = 0.5
+    _C.SEMISUPNET.CANON.ANAT_GAMMA = 0.3
+    _C.SEMISUPNET.CANON.LOG_EVERY = 25
+    _C.SEMISUPNET.CANON.FUSION = 'wbf'          # wbf | nms | heatmap | last (fusion-strategy ablation)
+    _C.SEMISUPNET.CANON.EXTRA_SCALES = ()        # extra multiplicative scales around the canonical one (view-count ablation)
+    _C.SEMISUPNET.CANON.ESTIMATOR = 'irls'       # irls | median | confmean | noclass (scale-estimator ablation)
+    _C.SEMISUPNET.CANON.FACTORS_FILE = ''        # externally supplied per-image factors (oracle / global / val-scale)
+    _C.SEMISUPNET.CANON.FACTOR_CONST = 0.0       # >0: constant factor for every image
+    _C.SEMISUPNET.CANON.ADAPT = 'none'          # none | bracket | count (uncertainty-aware view acquisition from the posterior std of u)
+    _C.SEMISUPNET.CANON.ADAPT_K = 1.732          # bracket half-width = K * posterior std (1.732: 3-point Gauss-Hermite nodes)
+    _C.SEMISUPNET.CANON.ADAPT_MIN = 0.0          # clip of the half-width (log units)
+    _C.SEMISUPNET.CANON.ADAPT_MAX = 0.5
+    _C.SEMISUPNET.CANON.ADAPT_TAU = 0.1          # count mode: bracket views only if posterior std > TAU
+    _C.SEMISUPNET.CANON.POST_WEIGHTS = False     # WBF view weights = quadrature weights (posterior-marginalised confidence)
+    _C.SEMISUPNET.CANON.PASS1_WEIGHT = 0.25      # weight of the pass-1 view relative to a centre view
+    # ---- IoU-Filter (Ruan & Tang, CVPRW 2024) re-implementation, Trainer == 'iouf'
