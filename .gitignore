@@ -1,0 +1,24 @@
+__pycache__/
+*.py[cod]
+*.so
+.ipynb_checkpoints/
+
+# experiment artifacts and data: never committed
+output/
+datasets/
+results/
+*.pth
+*.log
+*.jpg
+*.jpeg
+*.png
+*.pdf
+*.dcm
+*.nii
+*.nii.gz
+
+# editor and OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

@@ -1,0 +1,40 @@
+Test-time Anatomical Canonicalization (TAC)
+===========================================
+
+This repository contains additions to a third-party codebase. It is not a standalone package and it
+does not redistribute the code it extends.
+
+Upstream work
+-------------
+Adaptive Teacher
+    https://github.com/facebookresearch/adaptive_teacher
+    Licensed under Attribution-NonCommercial 4.0 International (CC BY-NC 4.0).
+    The full text of that license is reproduced in the file LICENSE.
+
+The files under adapteacher/ and tools/ in this repository are new files written for this work. They
+import from, subclass and extend Adaptive Teacher, and are intended to be copied into a clone of it.
+No file of the upstream repository is reproduced here, with the single exception of LICENSE, which is
+carried so that the terms travel with the derivative work.
+
+Terms for the additions
+-----------------------
+Because these additions are designed to run only as part of a work licensed under CC BY-NC 4.0, they
+are released on the same terms: non-commercial use, with attribution. If you use them, cite the paper
+named in README.md and attribute Adaptive Teacher as the upstream codebase.
+
+Third-party components used at run time
+---------------------------------------
+Detectron2              Apache License 2.0      https://github.com/facebookresearch/detectron2
+ensemble-boxes (WBF)    MIT License             https://github.com/ZFTurbo/Weighted-Boxes-Fusion
+pycocotools             BSD 2-Clause            https://github.com/cocodataset/cocoapi
+NumPy, SciPy, Matplotlib, PyTorch: their own permissive licenses.
+
+These are dependencies, not redistributed here.
+
+Methods reimplemented for comparison
+------------------------------------
+The baselines reported in the paper were obtained in two ways, and the paper keeps them apart. WHW and
+CD-Buffer were run from the authors' Apache-2.0 licensed releases. The remaining published methods were
+reimplemented from their papers inside this codebase, because no code applicable to this detector was
+available; those reimplementations carry the deviations documented in the paper and in the scripts
+under runners/, and a gap against the authors' own implementations cannot be excluded.
