@@ -12,6 +12,9 @@ results/
 *.jpg
 *.jpeg
 *.png
+
+# except the four de-identified frames the project page animates
+!docs/assets/*.jpg
 *.pdf
 *.dcm
 *.nii
