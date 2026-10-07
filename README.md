@@ -21,6 +21,26 @@ before any prediction is fused. Three modules act in a closed loop:
 Nothing is trained, the detector is never updated, and the only information that leaves the source site
 is a few hundred Gaussian statistics over structure sizes and relative positions.
 
+## Interactive walkthrough
+
+<https://lpc-97.github.io/tac-fetal-ultrasound/> animates the method on four real test frames. Each
+one plays the stream in order: the first pass of the frozen detector, the factor its boxes vote for,
+the frame resampled to the canonical scale, the views acquired around it, and the structures resolved
+out of their fusion. The boxes drawn are the ones the detector actually produced, before and after,
+and a structure counts as recovered when a box of its class overlaps the annotation by at least half.
+The same page replays the objective that the votes build on the worked example of the paper.
+
+| frame | shift | structures recovered |
+| --- | --- | --- |
+| Heart, four-chamber, center 1 model on a center 3 image | x2.85 | 0 of 9 -> 7 of 9 |
+| Heart, four-chamber, center 3 model on a center 2 image | x0.33 | 0 of 8 -> 8 of 8 |
+| Abdomen, transverse, GE model on a Philips image | x1.57 | 4 of 5 -> 4 of 5, one unmatched box dropped |
+| Spine, sagittal, GE model on a Samsung image | x2.05 | 4 of 4 -> 4 of 4, one unmatched box dropped |
+
+The page is a single self-contained file under `docs/`, with no external scripts. The four frames in
+`docs/assets/` are de-identified examples that also appear in the qualitative figure of the paper;
+they are the only images in this repository, and the datasets themselves are not redistributed.
+
 ## What this repository contains
 
 This is **not a standalone package**. TAC is implemented as an addition to the
