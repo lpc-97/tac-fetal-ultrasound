@@ -23,12 +23,22 @@ is a few hundred Gaussian statistics over structure sizes and relative positions
 
 ## Interactive walkthrough
 
-<https://lpc-97.github.io/tac-fetal-ultrasound/> animates the method on four real test frames. Each
-one plays the stream in order: the first pass of the frozen detector, the factor its boxes vote for,
-the frame resampled to the canonical scale, the views acquired around it, and the structures resolved
-out of their fusion. The boxes drawn are the ones the detector actually produced, before and after,
-and a structure counts as recovered when a box of its class overlaps the annotation by at least half.
-The same page replays the objective that the votes build on the worked example of the paper.
+<https://lpc-97.github.io/tac-fetal-ultrasound/> explains the method as four stepped animations,
+each one driven by the measurements behind the paper rather than by a sketch.
+
+1. **The problem.** Objects slide across the band edges of the detector's own level-assignment rule,
+   `level = clip(floor(4 + log2(sqrt(area)/224)), 2, 5)`, and the level histogram moves off the one
+   the detector was trained on. The three histograms are measured on the four-chamber view.
+2. **ANI.** The nine first-pass boxes of a real image vote for one factor. The three alternations
+   replay the intermediate values the deployed estimator wrote, responsibilities included.
+3. **UVA.** The objective, the parabola fitted at its minimum, the width that comes out of the
+   curvature, and the quadrature nodes the extra views are placed at.
+4. **SDF.** Weighted fusion over views rather than over cluster size, then resolution of a duplicate
+   under the pairwise layout prior.
+
+A fifth panel runs the same four steps on four real test frames. Colored boxes are what the frozen
+detector actually produced, and a structure counts as recovered when a box of its class overlaps the
+annotation by at least half:
 
 | frame | shift | structures recovered |
 | --- | --- | --- |

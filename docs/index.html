@@ -6,66 +6,72 @@
 <title>Test-time Anatomical Canonicalization</title>
 <style>
 :root{
-  --bg:#ffffff; --panel:#f6f7f9; --line:#e2e5ea; --ink:#14171c; --ink2:#5a636f;
-  --accent:#0072B2; --accent2:#D55E00; --ok:#009E73;
+  --bg:#ffffff; --panel:#f7f8fa; --line:#e3e6ea; --ink:#14171c; --ink2:#5a636f; --ink3:#8b949e;
+  --accent:#0072B2; --accent2:#D55E00; --ok:#009E73; --warn:#E69F00;
   --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
-    --bg:#13161b; --panel:#1b1f26; --line:#2b313a; --ink:#e9ebee; --ink2:#99a3af;
-    --accent:#56B4E9; --accent2:#E69F00; --ok:#34c89a;
+    --bg:#13161b; --panel:#1b1f26; --line:#2b313a; --ink:#e9ebee; --ink2:#99a3af; --ink3:#6f7884;
+    --accent:#56B4E9; --accent2:#E69F00; --ok:#34c89a; --warn:#F0E442;
   }
 }
 :root[data-theme="dark"]{
-  --bg:#13161b; --panel:#1b1f26; --line:#2b313a; --ink:#e9ebee; --ink2:#99a3af;
-  --accent:#56B4E9; --accent2:#E69F00; --ok:#34c89a;
+  --bg:#13161b; --panel:#1b1f26; --line:#2b313a; --ink:#e9ebee; --ink2:#99a3af; --ink3:#6f7884;
+  --accent:#56B4E9; --accent2:#E69F00; --ok:#34c89a; --warn:#F0E442;
 }
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);
   font:15px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
-.wrap{max-width:1000px;margin:0 auto;padding:30px 18px 70px}
-h1{font-size:26px;margin:0 0 6px;letter-spacing:-.01em}
-h2{font-size:18px;margin:42px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--line)}
+.wrap{max-width:960px;margin:0 auto;padding:34px 18px 70px}
+h1{font-size:27px;margin:0 0 6px;letter-spacing:-.01em}
+h2{font-size:12.5px;margin:0 0 4px;color:var(--accent);letter-spacing:.1em;
+  font-family:var(--mono);font-weight:600}
+h3{font-size:20px;margin:0 0 8px;letter-spacing:-.01em;line-height:1.3}
 p{margin:9px 0}
-.sub{color:var(--ink2);margin:0 0 18px}
+.sub{color:var(--ink2);margin:0 0 10px;font-size:15.5px}
 a{color:var(--accent)}
 code,.mono{font-family:var(--mono);font-size:.92em}
-.panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px}
 
-.rail{display:flex;gap:6px;margin:16px 0 10px;flex-wrap:wrap}
-.step{flex:1;min-width:116px;background:var(--panel);border:1px solid var(--line);
-  border-radius:7px;padding:8px 10px;transition:border-color .2s,opacity .2s;opacity:.4}
-.step.on{opacity:1;border-color:var(--accent)}
-.step .n{font:600 10px/1 var(--mono);color:var(--accent);letter-spacing:.08em}
-.step .t{font-size:12.4px;margin-top:4px;line-height:1.35}
-
-.stagebox{position:relative;background:#000;border:1px solid var(--line);
-  border-radius:10px;overflow:hidden}
-#view{display:block;width:100%;height:auto;background:#000}
-.cap{position:absolute;left:0;right:0;bottom:0;padding:11px 14px 12px;
-  background:linear-gradient(transparent,rgba(0,0,0,.86));color:#f2f4f6;font-size:13.5px;
-  line-height:1.5;min-height:52px}
-.cap b{color:#ffd479;font-weight:600}
-.ctl{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:12px 0 0}
-button{background:var(--panel);color:var(--ink);border:1px solid var(--line);
-  border-radius:6px;padding:6px 12px;font-size:13px;cursor:pointer}
+.act{margin:42px 0 0;padding:20px 20px 16px;background:var(--panel);
+  border:1px solid var(--line);border-radius:12px}
+.act .lead{color:var(--ink2);font-size:14px;margin:0 0 14px;max-width:80ch}
+.stage{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:4px}
+.stage svg{display:block;width:100%;height:auto}
+.cap{min-height:52px;margin:12px 2px 0;font-size:14px;line-height:1.5;color:var(--ink)}
+.cap b{color:var(--accent2)}
+.cap .m{font-family:var(--mono);font-size:12.6px;color:var(--ink2)}
+.bar{display:flex;align-items:center;gap:8px;margin:10px 0 0;flex-wrap:wrap}
+button{background:var(--bg);color:var(--ink);border:1px solid var(--line);
+  border-radius:6px;padding:5px 11px;font-size:13px;cursor:pointer;font-family:inherit}
 button:hover{border-color:var(--accent)}
-button.on{border-color:var(--accent);color:var(--accent)}
-button.primary{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600}
-button.primary:hover{opacity:.9}
-.cases{display:flex;gap:6px;flex-wrap:wrap;margin:9px 0 0}
-.cases button{font-size:12.4px;padding:5px 10px}
-.meta{font-family:var(--mono);font-size:12.3px;color:var(--ink2);margin-top:9px}
+button:disabled{opacity:.3;cursor:default}
+button.play{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600;min-width:72px}
+.dots{display:flex;gap:5px;margin-left:4px}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--line)}
+.dot.on{background:var(--accent)}
+.dot.done{background:var(--ink3)}
+.stepn{font-family:var(--mono);font-size:12px;color:var(--ink2);margin-left:auto}
 
 table{border-collapse:collapse;width:100%;font-size:13.2px}
-th,td{text-align:right;padding:5px 7px;border-bottom:1px solid var(--line)}
+th,td{text-align:right;padding:6px 7px;border-bottom:1px solid var(--line)}
 th:first-child,td:first-child{text-align:left}
 th{color:var(--ink2);font-weight:600;font-size:12.2px}
 .scroll{overflow-x:auto}
-.note{font-size:12.6px;color:var(--ink2);margin-top:8px}
-.two{display:grid;grid-template-columns:1.1fr .9fr;gap:18px;align-items:start}
-@media(max-width:860px){.two{grid-template-columns:1fr}}
-.foot{margin-top:44px;padding-top:15px;border-top:1px solid var(--line);font-size:13px;color:var(--ink2)}
+.note{font-size:12.6px;color:var(--ink2);margin-top:9px}
+.foot{margin-top:46px;padding-top:16px;border-top:1px solid var(--line);font-size:13px;color:var(--ink2)}
+
+.stagebox{position:relative;background:#000;border:1px solid var(--line);
+  border-radius:9px;overflow:hidden}
+#view{display:block;width:100%;height:auto;background:#000}
+.vcap{position:absolute;left:0;right:0;bottom:0;padding:10px 13px 11px;
+  background:linear-gradient(transparent,rgba(0,0,0,.86));color:#f2f4f6;font-size:13px;
+  line-height:1.45;min-height:48px}
+.vcap b{color:#ffd479}
+.cases{display:flex;gap:6px;flex-wrap:wrap;margin:9px 0 0}
+.cases button{font-size:12.3px;padding:5px 9px}
+.cases button.on{border-color:var(--accent);color:var(--accent)}
+.meta{font-family:var(--mono);font-size:12px;color:var(--ink2);margin-top:8px}
 </style>
 </head>
 <body>
@@ -73,58 +79,83 @@ th{color:var(--ink2);font-weight:600;font-size:12.2px}
 
 <h1>Test-time Anatomical Canonicalization</h1>
 <p class="sub">A structure detector trained at one hospital, adapted to another on a single unlabeled
-image, with no training and no access to source data. Press play.</p>
+image, with no training and no access to source data. Four steps, animated.</p>
 
-<div class="rail" id="rail">
-  <div class="step"><div class="n">1 &middot; PASS</div><div class="t">The frozen detector looks once</div></div>
-  <div class="step"><div class="n">2 &middot; ANI</div><div class="t">Infer the scale of this image</div></div>
-  <div class="step"><div class="n">3 &middot; CANON</div><div class="t">Resample to the trained size</div></div>
-  <div class="step"><div class="n">4 &middot; UVA</div><div class="t">Acquire views around it</div></div>
-  <div class="step"><div class="n">5 &middot; SDF</div><div class="t">Fuse and resolve</div></div>
+<div class="act">
+  <h2>STEP 1 &middot; THE PROBLEM</h2>
+  <h3>The anatomy arrives at the wrong size, so it lands on the wrong pyramid level</h3>
+  <p class="lead">A detector resolves an object on one level of its feature pyramid, chosen from the
+  object's area by a fixed rule. Train at one center and objects fall on the levels the detector
+  learned. Change vendor, depth or zoom and the same anatomy, unchanged, moves to levels it was never
+  trained for. The bars below are measured on the four-chamber view, one center's model applied to
+  another.</p>
+  <div class="stage"><svg id="s1" viewBox="0 0 880 330" role="img"
+    aria-label="Objects moving between feature-pyramid levels when the apparent scale changes"></svg></div>
+  <div class="cap" id="c1"></div>
+  <div class="bar" id="b1"></div>
 </div>
 
-<div class="stagebox">
-  <svg id="view" viewBox="0 0 900 600" preserveAspectRatio="xMidYMid meet" role="img"
-       aria-label="A fetal ultrasound frame being canonicalized and re-detected"></svg>
-  <div class="cap" id="cap"></div>
+<div class="act">
+  <h2>STEP 2 &middot; ANI</h2>
+  <h3>Every box votes for the one factor that would return it to its canonical size</h3>
+  <p class="lead">The detector's own first pass is the only evidence. Each box reports a size and
+  claims a structure; the source prior says how large that structure usually is. The gap between the
+  two is a vote. Votes are weighted by how plausible the claimed size is, so boxes that landed on
+  nothing lose their say instead of having to be thresholded away. What plays below is the deployed
+  estimator on a real image, with its own intermediate values.</p>
+  <div class="stage"><svg id="s2" viewBox="0 0 880 400" role="img"
+    aria-label="Candidate boxes voting for a common scale factor over three alternations"></svg></div>
+  <div class="cap" id="c2"></div>
+  <div class="bar" id="b2"></div>
 </div>
 
-<div class="ctl">
-  <button class="primary" id="play">play</button>
-  <button id="cmp" title="show what the frozen detector returns before canonicalization">before</button>
-  <button id="gtb" title="show the annotation">annotation</button>
+<div class="act">
+  <h2>STEP 3 &middot; UVA</h2>
+  <h3>How sharp the estimate is decides how far apart the extra views go</h3>
+  <p class="lead">The same objective that gives the factor gives its curvature, and the curvature
+  gives the width of a Gaussian surrogate. Views are placed at the quadrature nodes of that
+  surrogate, so a confident image is bracketed tightly and an ambiguous one wide. The width is not a
+  hyper-parameter; only the two clip bounds are.</p>
+  <div class="stage"><svg id="s3" viewBox="0 0 880 330" role="img"
+    aria-label="The objective, its curvature, and the views placed at the quadrature nodes"></svg></div>
+  <div class="cap" id="c3"></div>
+  <div class="bar" id="b3"></div>
 </div>
-<div class="cases" id="cases"></div>
-<p class="meta" id="meta"></p>
-<p class="note">Real frames and real detections from the target test splits. Colored boxes are
-what the frozen detector actually produced; a structure counts as recovered when a box of its class
-overlaps the annotation by at least half. Each example is drawn at one fixed display zoom, so what
-changes on screen is exactly the inferred factor, and the canvas plays the part of the detector's
-fixed anchors: the anatomy starts too small or too large for them and ends at the size they were
-trained on.</p>
 
-<h2>Why one number per image is enough</h2>
-<div class="two">
-  <div>
-    <p>Vendor, depth and zoom decide how many pixels a structure occupies. A detector carries the
-    size distribution of its training site in its anchor assignment and in the pyramid level on which
-    each object is resolved, so when the anatomy arrives larger or smaller it is resolved at levels
-    the detector was never trained for, even though every structure is present and plainly visible.</p>
-    <p>TAC treats that apparent scale as one latent variable per image. Each first-pass box votes for
-    the displacement that would return it to the canonical size of the structure it claims to be, and
-    each vote is weighted by how plausible that size is and by how much the detector believes the box,
-    so boxes that land on nothing lose influence instead of having to be thresholded away. Three
-    closed-form updates give the factor, and the curvature of the same objective gives a spread that
-    decides how far apart the extra views sit and whether they are acquired at all.</p>
+<div class="act">
+  <h2>STEP 4 &middot; SDF</h2>
+  <h3>Fuse the views, then let the layout of the plane settle the duplicates</h3>
+  <p class="lead">Boxes of one structure from several views are averaged with their confidences as
+  weights, and the fused confidence is divided by the number of views rather than by the size of the
+  cluster, so a box seen once is discounted against one confirmed by several. One box per structure
+  is then chosen under a prior on where structures sit relative to each other. The loser is
+  down-weighted, never deleted.</p>
+  <div class="stage"><svg id="s4" viewBox="0 0 880 320" role="img"
+    aria-label="Weighted box fusion followed by resolution under a pairwise layout prior"></svg></div>
+  <div class="cap" id="c4"></div>
+  <div class="bar" id="b4"></div>
+</div>
+
+<div class="act">
+  <h2>AND ON A REAL FRAME</h2>
+  <h3>The same four steps, on images from the target test splits</h3>
+  <p class="lead">Colored boxes are what the frozen detector actually produced. A structure counts as
+  recovered when a box of its class overlaps the annotation by at least half.</p>
+  <div class="stagebox">
+    <svg id="view" viewBox="0 0 900 600" preserveAspectRatio="xMidYMid meet" role="img"
+         aria-label="A fetal ultrasound frame being canonicalized and re-detected"></svg>
+    <div class="vcap" id="vcap"></div>
   </div>
-  <div class="panel">
-    <svg id="plot" viewBox="0 0 420 240" width="100%" height="240" role="img"
-         aria-label="The objective the votes build, over the scale factor"></svg>
-    <p class="note" id="pnote"></p>
+  <div class="bar">
+    <button class="play" id="vplay">play</button>
+    <button id="vcmp">before</button>
+    <button id="vgt">annotation</button>
   </div>
+  <div class="cases" id="cases"></div>
+  <p class="meta" id="vmeta"></p>
 </div>
 
-<h2>What it buys</h2>
+<h3 style="margin:46px 0 8px">What it buys</h3>
 <div class="scroll"><table id="res">
   <thead><tr><th>setting</th><th>source model</th><th>TAC-7</th><th>gain</th></tr></thead>
   <tbody></tbody>
@@ -140,351 +171,859 @@ baseline closes 5 percent.</p>
   The implementation extends <a href="https://github.com/facebookresearch/adaptive_teacher">Adaptive
   Teacher</a> and is released on the same non-commercial terms; see <code>NOTICE</code>.</p>
   <p>The frames shown here are four de-identified examples that also appear in the paper's qualitative
-  figure. The datasets themselves are not redistributed; availability is governed by the data owners
-  and the ethics constraints stated in the paper.</p>
+  figure. The datasets themselves are not redistributed.</p>
 </div>
 
 </div>
 
 <script id="cases-data" type="application/json">{"iou_threshold":0.5,"min_score":0.3,"cases":[{"key":"c3_small_f285","asset":"assets/heart_small.jpg","organ":"Heart","plane":"four-chamber view","pair":"center 1 model, center 3 image","blurb":"The heart is small in this screen capture, and the single box that comes back lands on nothing.","w":720,"h":576,"f":2.8534,"s0":800,"n_gt":9,"r_src":0,"r_tac":7,"gt":[{"x":324,"y":246,"w":28,"h":25,"c":1,"n":"RA","s":1.0},{"x":268,"y":255,"w":41,"h":41,"c":6,"n":"SP","s":1.0},{"x":313,"y":263,"w":28,"h":27,"c":0,"n":"LA","s":1.0},{"x":334,"y":271,"w":41,"h":30,"c":2,"n":"LV","s":1.0},{"x":300,"y":272,"w":14,"h":15,"c":7,"n":"DAO","s":1.0},{"x":332,"y":264,"w":20,"h":18,"c":5,"n":"CRO","s":1.0},{"x":341,"y":264,"w":34,"h":21,"c":4,"n":"VS","s":1.0},{"x":284,"y":213,"w":79,"h":28,"c":8,"n":"RIB","s":1.0},{"x":287,"y":298,"w":78,"h":28,"c":8,"n":"RIB","s":1.0}],"src":[{"x":328.5,"y":316.8,"w":37.4,"h":32.7,"c":7,"n":"DAO","s":0.759}],"tac":[{"x":282.9,"y":215.1,"w":78.5,"h":27.1,"c":8,"n":"RIB","s":0.792},{"x":268.9,"y":252.2,"w":38.6,"h":40.7,"c":6,"n":"SP","s":0.791},{"x":321.3,"y":244.9,"w":33.1,"h":26.4,"c":1,"n":"RA","s":0.712},{"x":284.7,"y":296.9,"w":79.7,"h":31.3,"c":8,"n":"RIB","s":0.694},{"x":312.2,"y":261.4,"w":29.4,"h":26.5,"c":0,"n":"LA","s":0.643},{"x":382.2,"y":330.2,"w":22.4,"h":19.9,"c":7,"n":"DAO","s":0.399},{"x":333.1,"y":262.9,"w":17.5,"h":18.1,"c":5,"n":"CRO","s":0.399},{"x":333.9,"y":268.3,"w":42.2,"h":31.4,"c":2,"n":"LV","s":0.389}],"views":[2.2899,2.8534,3.5556]},{"key":"c2_small_f033","asset":"assets/heart_large.jpg","organ":"Heart","plane":"four-chamber view","pair":"center 3 model, center 2 image","blurb":"The opposite shift. The heart fills the sector, and the nine boxes of the first pass all land on nothing.","w":1024,"h":768,"f":0.3263,"s0":800,"n_gt":8,"r_src":0,"r_tac":8,"gt":[{"x":757,"y":414,"w":128,"h":119,"c":7,"n":"DAO","s":1.0},{"x":855,"y":331,"w":165,"h":255,"c":6,"n":"SP","s":1.0},{"x":154,"y":450,"w":423,"h":288,"c":2,"n":"LV","s":1.0},{"x":480.2,"y":289.7,"w":251.3,"h":267.9,"c":0,"n":"LA","s":1.0},{"x":127,"y":406.5,"w":290.5,"h":243.5,"c":4,"n":"VS","s":1.0},{"x":87.1,"y":306.9,"w":342.1,"h":295.9,"c":3,"n":"RV","s":1.0},{"x":316.1,"y":176.6,"w":259.7,"h":217.2,"c":1,"n":"RA","s":1.0},{"x":355.9,"y":350.3,"w":175.6,"h":133.0,"c":5,"n":"CR","s":1.0}],"src":[{"x":739.4,"y":351.5,"w":206.4,"h":215.9,"c":6,"n":"SP","s":0.998},{"x":319.0,"y":534.3,"w":194.0,"h":129.0,"c":4,"n":"VS","s":0.873},{"x":231.0,"y":494.5,"w":254.8,"h":181.2,"c":3,"n":"RV","s":0.797},{"x":248.9,"y":497.9,"w":231.5,"h":191.2,"c":2,"n":"LV","s":0.782},{"x":411.3,"y":452.9,"w":238.2,"h":180.1,"c":0,"n":"LA","s":0.774},{"x":403.0,"y":443.9,"w":265.5,"h":201.3,"c":3,"n":"RV","s":0.634},{"x":224.0,"y":264.2,"w":276.8,"h":187.3,"c":2,"n":"LV","s":0.596},{"x":138.0,"y":324.3,"w":242.4,"h":220.1,"c":0,"n":"LA","s":0.475},{"x":464.8,"y":329.7,"w":188.9,"h":140.9,"c":0,"n":"LA","s":0.419}],"tac":[{"x":749.8,"y":402.7,"w":138.0,"h":135.9,"c":7,"n":"DAO","s":0.856},{"x":318.4,"y":333.7,"w":221.9,"h":199.4,"c":5,"n":"CR","s":0.8},{"x":124.9,"y":409.1,"w":311.2,"h":226.4,"c":4,"n":"VS","s":0.8},{"x":299.7,"y":176.4,"w":270.6,"h":240.5,"c":1,"n":"RA","s":0.8},{"x":75.8,"y":287.0,"w":315.4,"h":314.9,"c":3,"n":"RV","s":0.8},{"x":463.0,"y":335.4,"w":261.0,"h":250.5,"c":0,"n":"LA","s":0.8},{"x":172.9,"y":453.5,"w":387.8,"h":246.7,"c":2,"n":"LV","s":0.8},{"x":813.0,"y":284.2,"w":199.5,"h":290.1,"c":6,"n":"SP","s":0.602}],"views":[0.2619,0.3263,0.4066]},{"key":"abd_ph_f157","asset":"assets/abdomen.jpg","organ":"Abdomen","plane":"transverse view","pair":"GE model, Philips image","blurb":"A milder cross-vendor shift, where the first pass is already close and the correction is small.","w":766,"h":586,"f":1.5705,"s0":700,"n_gt":5,"r_src":4,"r_tac":4,"gt":[{"x":358,"y":389,"w":58,"h":52,"c":1,"n":"S","s":1.0},{"x":338,"y":300,"w":174,"h":164,"c":0,"n":"N","s":1.0},{"x":376,"y":337,"w":46,"h":40,"c":3,"n":"ST","s":1.0},{"x":412,"y":400,"w":85,"h":55,"c":2,"n":"R","s":1.0},{"x":402,"y":388,"w":20,"h":18,"c":6,"n":"AO","s":1.0}],"src":[{"x":336.7,"y":295.1,"w":173.5,"h":168.3,"c":0,"n":"N","s":1.0},{"x":371.6,"y":337.6,"w":48.3,"h":37.5,"c":3,"n":"ST","s":0.998},{"x":412.3,"y":395.3,"w":80.6,"h":59.2,"c":2,"n":"R","s":0.997},{"x":356.2,"y":400.1,"w":59.8,"h":36.4,"c":1,"n":"S","s":0.743},{"x":381.2,"y":400.5,"w":28.1,"h":38.3,"c":1,"n":"S","s":0.337}],"tac":[{"x":335.3,"y":299.1,"w":179.7,"h":160.7,"c":0,"n":"N","s":1.0},{"x":375.9,"y":336.3,"w":44.9,"h":39.0,"c":3,"n":"ST","s":0.998},{"x":410.6,"y":391.6,"w":84.7,"h":61.5,"c":2,"n":"R","s":0.981},{"x":357.1,"y":388.7,"w":61.8,"h":57.2,"c":1,"n":"S","s":0.666}],"views":[1.2604,1.5705,1.957]},{"key":"spine_sa_f205","asset":"assets/spine.jpg","organ":"Spine","plane":"sagittal view","pair":"GE model, Samsung image","blurb":"An elongated plane, where the first pass is also close but carries one box that matches nothing.","w":720,"h":576,"f":2.0545,"s0":700,"n_gt":4,"r_src":4,"r_tac":4,"gt":[{"x":258,"y":173,"w":224,"h":72,"c":0,"n":"SC","s":1.0},{"x":271,"y":187,"w":209,"h":45,"c":1,"n":"VAOC","s":1.0},{"x":276,"y":202,"w":211,"h":42,"c":4,"n":"VOC","s":1.0},{"x":265,"y":206,"w":36,"h":32,"c":5,"n":"DS","s":1.0}],"src":[{"x":274.4,"y":204.0,"w":209.8,"h":41.9,"c":4,"n":"VOC","s":1.0},{"x":254.5,"y":181.3,"w":229.0,"h":57.8,"c":0,"n":"SC","s":1.0},{"x":262.7,"y":200.4,"w":41.6,"h":37.3,"c":5,"n":"DS","s":0.999},{"x":272.0,"y":189.5,"w":210.1,"h":45.8,"c":1,"n":"VAOC","s":0.997},{"x":353.1,"y":190.3,"w":87.5,"h":19.2,"c":2,"n":"MS","s":0.441}],"tac":[{"x":260.3,"y":179.6,"w":222.6,"h":63.7,"c":0,"n":"SC","s":1.0},{"x":263.3,"y":201.2,"w":38.9,"h":35.9,"c":5,"n":"DS","s":1.0},{"x":275.9,"y":205.2,"w":178.6,"h":36.8,"c":4,"n":"VOC","s":0.999},{"x":275.5,"y":191.3,"w":208.1,"h":44.5,"c":1,"n":"VAOC","s":0.921}],"views":[1.6488,2.0545,2.56]}]}</script>
-<script id="ani-data" type="application/json">{"example":{"dataset":"Heart-4CC","source":"center 3","target":"center 2","seed":42,"width":1024,"height":768,"k0":1.04167,"s0":800},"constants":{"MIN_SCORE":0.3,"SIGMA_OBS":0.1,"SIGMA_U":1.0,"RHO_OUT":0.2,"IRLS_ITERS":3,"ADAPT_K":1.732,"H_MIN":0.15,"H_MAX":0.5,"WBF_IOU":0.55,"GAMMA":0.3},"candidates":[{"name":"SP","cls":6,"p":0.9984,"z":5.39318,"mu":4.71725,"sg":0.31352,"box":[739.4,351.5,206.4,215.9]},{"name":"VS","cls":4,"p":0.8734,"z":5.10466,"mu":4.39862,"sg":0.36761,"box":[319.0,534.3,194.0,129.0]},{"name":"RV","cls":3,"p":0.7966,"z":5.41104,"mu":4.59105,"sg":0.38044,"box":[231.0,494.5,254.8,181.2]},{"name":"LV","cls":2,"p":0.7824,"z":5.38979,"mu":4.6121,"sg":0.36702,"box":[248.9,497.9,231.5,191.2]},{"name":"LA","cls":0,"p":0.774,"z":5.37413,"mu":4.35941,"sg":0.38271,"box":[411.3,452.9,238.2,180.1]},{"name":"RV","cls":3,"p":0.6336,"z":5.48409,"mu":4.59105,"sg":0.38044,"box":[403.0,443.9,265.5,201.3]},{"name":"LV","cls":2,"p":0.5964,"z":5.46874,"mu":4.6121,"sg":0.36702,"box":[224.0,264.2,276.8,187.3]},{"name":"LA","cls":0,"p":0.475,"z":5.48317,"mu":4.35941,"sg":0.38271,"box":[138.0,324.3,242.4,220.1]},{"name":"LA","cls":0,"p":0.4193,"z":5.13555,"mu":4.35941,"sg":0.38271,"box":[464.8,329.7,188.9,140.9]}],"trace":[{"u":-0.75412,"f":0.4704,"r":[0.9974,0.8555,0.668,0.6743,0.3468,0.3657,0.3451,0.0595,0.325]},{"u":-0.81744,"f":0.4416,"r":[0.9997,0.9738,0.9529,0.9512,0.934,0.8945,0.8854,0.7473,0.7898]},{"u":-0.81853,"f":0.4411,"r":[0.9997,0.9728,0.9536,0.951,0.9399,0.8989,0.8887,0.7739,0.7891]}],"result":{"u":-0.81853,"f":0.4411,"s":0.12709,"h":0.22012,"views":[0.3539,0.4411,0.5497],"f_deployed":0.3263},"prior":{"LA":{"mu":4.35941,"sg":0.36941,"n":1},"RA":{"mu":4.35025,"sg":0.35896,"n":1},"LV":{"mu":4.6121,"sg":0.35313,"n":1},"RV":{"mu":4.59105,"sg":0.36707,"n":1},"VS":{"mu":4.39862,"sg":0.35374,"n":1},"CRO":{"mu":4.16682,"sg":0.34412,"n":2},"SP":{"mu":4.71725,"sg":0.29715,"n":1},"DAO":{"mu":3.80587,"sg":0.31705,"n":1},"RIB":{"mu":4.9237,"sg":0.32532,"n":2}},"results_table":[{"setting":"Heart-4CC / Faster R-CNN","source":46.99,"tac7":55.21,"gain":8.22,"provenance":"numbers_quad.json:heart4cc_frcnn"},{"setting":"Heart-4CC / RetinaNet","source":42.24,"tac7":52.34,"gain":10.1,"provenance":"numbers_quad.json:heart4cc_retinanet"},{"setting":"Abdomen / Faster R-CNN","source":64.25,"tac7":70.02,"gain":5.78,"provenance":"numbers_quad.json:abdomen"},{"setting":"Spine / Faster R-CNN","source":54.68,"tac7":58.38,"gain":3.71,"provenance":"numbers_quad.json:spine"}]}</script>
+<script id="ani-data" type="application/json">{"example":{"dataset":"Heart-4CC","source":"center 3","target":"center 2","seed":42,"width":1024,"height":768,"k0":1.04167,"s0":800},"constants":{"MIN_SCORE":0.3,"SIGMA_OBS":0.1,"SIGMA_U":1.0,"RHO_OUT":0.2,"IRLS_ITERS":3,"ADAPT_K":1.732,"H_MIN":0.15,"H_MAX":0.5,"WBF_IOU":0.55,"GAMMA":0.3},"candidates":[{"name":"SP","cls":6,"p":0.9984,"z":5.39318,"mu":4.71725,"sg":0.31352,"box":[739.4,351.5,206.4,215.9]},{"name":"VS","cls":4,"p":0.8734,"z":5.10466,"mu":4.39862,"sg":0.36761,"box":[319.0,534.3,194.0,129.0]},{"name":"RV","cls":3,"p":0.7966,"z":5.41104,"mu":4.59105,"sg":0.38044,"box":[231.0,494.5,254.8,181.2]},{"name":"LV","cls":2,"p":0.7824,"z":5.38979,"mu":4.6121,"sg":0.36702,"box":[248.9,497.9,231.5,191.2]},{"name":"LA","cls":0,"p":0.774,"z":5.37413,"mu":4.35941,"sg":0.38271,"box":[411.3,452.9,238.2,180.1]},{"name":"RV","cls":3,"p":0.6336,"z":5.48409,"mu":4.59105,"sg":0.38044,"box":[403.0,443.9,265.5,201.3]},{"name":"LV","cls":2,"p":0.5964,"z":5.46874,"mu":4.6121,"sg":0.36702,"box":[224.0,264.2,276.8,187.3]},{"name":"LA","cls":0,"p":0.475,"z":5.48317,"mu":4.35941,"sg":0.38271,"box":[138.0,324.3,242.4,220.1]},{"name":"LA","cls":0,"p":0.4193,"z":5.13555,"mu":4.35941,"sg":0.38271,"box":[464.8,329.7,188.9,140.9]}],"trace":[{"u":-0.75412,"f":0.4704,"r":[0.9974,0.8555,0.668,0.6743,0.3468,0.3657,0.3451,0.0595,0.325]},{"u":-0.81744,"f":0.4416,"r":[0.9997,0.9738,0.9529,0.9512,0.934,0.8945,0.8854,0.7473,0.7898]},{"u":-0.81853,"f":0.4411,"r":[0.9997,0.9728,0.9536,0.951,0.9399,0.8989,0.8887,0.7739,0.7891]}],"result":{"u":-0.81853,"f":0.4411,"s":0.12709,"h":0.22012,"views":[0.3539,0.4411,0.5497],"f_deployed":0.3263},"prior":{"LA":{"mu":4.35941,"sg":0.36941,"n":1},"RA":{"mu":4.35025,"sg":0.35896,"n":1},"LV":{"mu":4.6121,"sg":0.35313,"n":1},"RV":{"mu":4.59105,"sg":0.36707,"n":1},"VS":{"mu":4.39862,"sg":0.35374,"n":1},"CRO":{"mu":4.16682,"sg":0.34412,"n":2},"SP":{"mu":4.71725,"sg":0.29715,"n":1},"DAO":{"mu":3.80587,"sg":0.31705,"n":1},"RIB":{"mu":4.9237,"sg":0.32532,"n":2}},"fpn":{"direction":"c1_to_c3","s0":800,"rule":"level = clip(floor(4 + log2(sqrt(area)/224)), 2, 5)","source_train":{"2":0.3175,"3":0.59817,"4":0.08433,"5":0.0},"target_default":{"2":0.69014,"3":0.29884,"4":0.01102,"5":0.0},"target_tac":{"2":0.31353,"3":0.63074,"4":0.05573,"5":0.0},"provenance":"fpn_levels_s42_2026-09-14.json:c1_to_c3"},"results_table":[{"setting":"Heart-4CC / Faster R-CNN","source":46.99,"tac7":55.21,"gain":8.22,"provenance":"numbers_quad.json:heart4cc_frcnn"},{"setting":"Heart-4CC / RetinaNet","source":42.24,"tac7":52.34,"gain":10.1,"provenance":"numbers_quad.json:heart4cc_retinanet"},{"setting":"Abdomen / Faster R-CNN","source":64.25,"tac7":70.02,"gain":5.78,"provenance":"numbers_quad.json:abdomen"},{"setting":"Spine / Faster R-CNN","source":54.68,"tac7":58.38,"gain":3.71,"provenance":"numbers_quad.json:spine"}]}</script>
 <script>
 (function(){
+var NS = 'http://www.w3.org/2000/svg';
 var CD = JSON.parse(document.getElementById('cases-data').textContent);
 var CASES = CD.cases, IOU = CD.iou_threshold;
 var ANI = JSON.parse(document.getElementById('ani-data').textContent);
-var PAL = ['#0072B2','#E69F00','#009E73','#D55E00','#CC79A7','#56B4E9','#8FD6B4','#F0C571','#9A9A9A'];
-var NS = 'http://www.w3.org/2000/svg';
-var VW = 900, VH = 600;
-var svg = document.getElementById('view'), cap = document.getElementById('cap');
-var meta = document.getElementById('meta'), rail = document.getElementById('rail');
-var btnPlay = document.getElementById('play'), btnCmp = document.getElementById('cmp'),
-    btnGt = document.getElementById('gtb');
-var ci = 0, token = 0, playing = false, showGt = false, showBefore = false;
+var K = ANI.constants, CAND = ANI.candidates, RES = ANI.result, TRACE = ANI.trace, FPN = ANI.fpn;
+var PAL = ['#0072B2','#E69F00','#009E73','#D55E00','#CC79A7','#56B4E9','#8FD6B4','#C9A227','#9A9A9A'];
 
-function el(n, a){ var e = document.createElementNS(NS, n);
-  for (var k in a) e.setAttribute(k, a[k]); return e; }
-function css(v){ var s = getComputedStyle(document.documentElement).getPropertyValue(v);
-  return s ? s.trim() : '#888888'; }
-function C(){ return CASES[ci]; }
-
-function centre(c){
-  var b = c.gt.length ? c.gt : c.src;
-  if (!b.length) return { x: c.w/2, y: c.h/2 };
-  var sx = 0, sy = 0;
-  for (var i=0;i<b.length;i++){ sx += b[i].x + b[i].w/2; sy += b[i].y + b[i].h/2; }
-  return { x: sx/b.length, y: sy/b.length };
+function el(n, a){
+  var e = document.createElementNS(NS, n);
+  for (var k in a) if (a[k] !== null && a[k] !== undefined) e.setAttribute(k, a[k]);
+  return e;
 }
-function anatBox(c){
-  var b = c.gt.length ? c.gt : c.src;
-  var x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9;
-  for (var i=0;i<b.length;i++){
-    if (b[i].x < x0) x0 = b[i].x;
-    if (b[i].y < y0) y0 = b[i].y;
-    if (b[i].x + b[i].w > x1) x1 = b[i].x + b[i].w;
-    if (b[i].y + b[i].h > y1) y1 = b[i].y + b[i].h;
+function txt(p, x, y, s, o){
+  o = o || {};
+  var t = el('text', {x:x, y:y, fill:o.fill || css('--ink2'), 'font-size':o.size || 11.5,
+    'text-anchor':o.anchor || 'start', 'font-weight':o.bold ? 600 : 400,
+    'font-family':o.mono ? 'ui-monospace,Consolas,monospace' : null,
+    opacity:o.opacity === undefined ? null : o.opacity});
+  t.textContent = s; p.appendChild(t); return t;
+}
+function css(v){
+  var s = getComputedStyle(document.documentElement).getPropertyValue(v);
+  return s ? s.trim() : '#808080';
+}
+function clear(svg){ while (svg.firstChild) svg.removeChild(svg.firstChild); }
+function ease(t){ return t < 0.5 ? 2*t*t : 1 - Math.pow(-2*t + 2, 2)/2; }
+function lerp(a, b, p){ return a + (b - a)*p; }
+
+/* ---------------- the stepper every act shares ---------------- */
+var SCENES = {};
+function Scene(svgId, capId, barId, steps){
+  var self = this;
+  SCENES[svgId] = this;
+  this.svg = document.getElementById(svgId);
+  this.cap = document.getElementById(capId);
+  this.steps = steps;
+  this.i = 0; this.playing = false; this.tok = 0;
+
+  var bar = document.getElementById(barId);
+  this.bPlay = document.createElement('button');
+  this.bPlay.className = 'play'; this.bPlay.textContent = 'play';
+  this.bPrev = document.createElement('button'); this.bPrev.textContent = '◀';
+  this.bNext = document.createElement('button'); this.bNext.textContent = '▶';
+  var dots = document.createElement('div'); dots.className = 'dots';
+  this.dots = [];
+  for (var i = 0; i < steps.length; i++){
+    var d = document.createElement('div'); d.className = 'dot';
+    dots.appendChild(d); this.dots.push(d);
   }
-  if (x1 < x0) return { w: c.w, h: c.h };
-  return { w: Math.max(1, x1 - x0), h: Math.max(1, y1 - y0) };
+  this.lbl = document.createElement('span'); this.lbl.className = 'stepn';
+  bar.appendChild(this.bPlay); bar.appendChild(this.bPrev); bar.appendChild(this.bNext);
+  bar.appendChild(dots); bar.appendChild(this.lbl);
+
+  this.bPlay.addEventListener('click', function(){ self.playing ? self.pause() : self.play(); });
+  this.bPrev.addEventListener('click', function(){ self.pause(); self.goTo(self.i - 1, false); });
+  this.bNext.addEventListener('click', function(){ self.pause(); self.goTo(self.i + 1, true); });
+  this.goTo(0, false);
 }
-/* One display zoom per example, fixed for the whole animation: large enough that the structures
-   fill most of the canvas once the frame has been canonicalized, but never so large that the
-   original frame overflows the canvas before the correction. Everything on screen therefore changes
-   by exactly the inferred factor. */
-var ZOOM = {};
-function zoomOf(c){
-  if (ZOOM[c.key] === undefined){
-    var a = anatBox(c);
-    ZOOM[c.key] = Math.min(0.62 * Math.min(VW/(a.w*c.f), VH/(a.h*c.f)),
-                           1.50 * Math.min(VW/c.w, VH/c.h));
+Scene.prototype.render = function(i, p){
+  var st = this.steps[i];
+  clear(this.svg);
+  st.draw(this.svg, p);
+  this.cap.innerHTML = (typeof st.cap === 'function') ? st.cap(p) : st.cap;
+  for (var k = 0; k < this.dots.length; k++){
+    this.dots[k].className = 'dot' + (k === i ? ' on' : (k < i ? ' done' : ''));
   }
-  return ZOOM[c.key];
-}
+  this.lbl.textContent = 'step ' + (i + 1) + ' / ' + this.steps.length;
+  this.bPrev.disabled = (i === 0);
+  this.bNext.disabled = (i === this.steps.length - 1);
+};
+Scene.prototype.goTo = function(i, animate){
+  if (i < 0) i = 0;
+  if (i >= this.steps.length) i = this.steps.length - 1;
+  this.i = i;
+  var tok = ++this.tok, self = this, st = this.steps[i];
+  if (!animate || !st.ms){
+    this.render(i, 1);
+    if (this.playing) setTimeout(function(){
+      if (tok === self.tok && self.playing) self.advance();
+    }, st.hold || 1500);
+    return;
+  }
+  var t0 = null;
+  var frame = function(ts){
+    if (tok !== self.tok) return;
+    if (t0 === null) t0 = ts;
+    var p = Math.min(1, (ts - t0)/st.ms);
+    self.render(i, ease(p));
+    if (p < 1) requestAnimationFrame(frame);
+    else if (self.playing) setTimeout(function(){
+      if (tok === self.tok && self.playing) self.advance();
+    }, st.hold || 1500);
+  };
+  requestAnimationFrame(frame);
+};
+Scene.prototype.advance = function(){
+  if (this.i >= this.steps.length - 1){ this.pause(); return; }
+  this.goTo(this.i + 1, true);
+};
+Scene.prototype.play = function(){
+  this.playing = true; this.bPlay.textContent = 'pause';
+  if (this.i >= this.steps.length - 1){ this.i = -1; }
+  this.advance();
+};
+Scene.prototype.pause = function(){
+  this.playing = false; this.bPlay.textContent = 'play'; this.tok++;
+};
 
-function render(k, flip, layers, tag){
-  var c = C(), s = zoomOf(c) * k, cen = centre(c);
-  var tx = VW/2 - cen.x*s, ty = VH/2 - cen.y*s;
-  while (svg.firstChild) svg.removeChild(svg.firstChild);
-  svg.appendChild(el('rect', {x:0, y:0, width:VW, height:VH, fill:'#000'}));
+/* ================= ACT 1 : pyramid levels ================= */
+(function(){
+  var W = 880, H = 330;
+  var LV = [2, 3, 4];
+  var LCOL = ['#0072B2', '#009E73', '#E69F00'];
+  var SRC = FPN.source_train, DEF = FPN.target_default, TAC = FPN.target_tac;
+  function tv(a, b){
+    var s = 0;
+    for (var i = 0; i < LV.length; i++) s += Math.abs(a[LV[i]] - b[LV[i]]);
+    return s/2;
+  }
+  var TV_DEF = tv(DEF, SRC), TV_TAC = tv(TAC, SRC);
+  var EDGE = [56, 112, 224, 448];
+  var AX = {x0:62, x1:432, y:238, lo:Math.log(34), hi:Math.log(560)};
+  function X(s){ return AX.x0 + (AX.x1 - AX.x0)*(Math.log(s) - AX.lo)/(AX.hi - AX.lo); }
+  function levelOf(s){ return Math.max(2, Math.min(5, Math.floor(4 + Math.log(s/224)/Math.LN2))); }
 
-  var tr = 'translate(' + tx.toFixed(2) + ',' + ty.toFixed(2) + ') scale(' + s.toFixed(5) + ')';
-  if (flip) tr += ' translate(' + c.w + ',0) scale(-1,1)';
-  var g = el('g', {transform: tr});
-  var im = el('image', {x:0, y:0, width:c.w, height:c.h, preserveAspectRatio:'none'});
-  im.setAttributeNS('http://www.w3.org/1999/xlink', 'href', c.asset);
-  im.setAttribute('href', c.asset);
-  g.appendChild(im);
-  svg.appendChild(g);
+  function sample(h, seed){
+    var pts = [], n = 54, s = seed || 7;
+    function rnd(){ s = (s*1103515245 + 12345) & 0x7fffffff; return s/0x7fffffff; }
+    for (var li = 0; li < LV.length; li++){
+      var lv = LV[li], m = Math.round(h[lv]*n);
+      var a = (lv === 2) ? 40 : EDGE[lv - 2], b = EDGE[lv - 1];
+      for (var j = 0; j < m; j++) pts.push(Math.exp(lerp(Math.log(a*1.07), Math.log(b*0.93), rnd())));
+    }
+    while (pts.length < n) pts.push(pts[pts.length - 1] || 100);
+    return pts.slice(0, n);
+  }
+  var P_SRC = sample(SRC, 7), P_DEF = sample(DEF, 7), P_TAC = sample(TAC, 7);
 
-  for (var L=0; L<layers.length; L++){
-    var ly = layers[L];
-    if (!ly || ly.alpha <= 0.01) continue;
-    for (var i=0;i<ly.list.length;i++){
-      var b = ly.list[i];
-      var col = ly.dash ? '#ffffff' : PAL[((b.c % PAL.length) + PAL.length) % PAL.length];
-      var bx = flip ? (c.w - (b.x + b.w)) : b.x;
-      var px = tx + bx*s, py = ty + b.y*s, pw = b.w*s, ph = b.h*s;
-      svg.appendChild(el('rect', {x:px.toFixed(1), y:py.toFixed(1),
-        width:Math.max(1, pw).toFixed(1), height:Math.max(1, ph).toFixed(1),
-        fill:'none', stroke:col, 'stroke-width': ly.dash ? 1.4 : 2.2,
-        'stroke-dasharray': ly.dash ? '5 4' : '', opacity: ly.alpha}));
-      if (ly.label && px > -60 && px < VW + 60 && py > -30 && py < VH + 30){
-        var t = el('text', {x:(px+3).toFixed(1), y:Math.max(13, py-4).toFixed(1), fill:col,
-          'font-size':13, 'font-weight':600, opacity:ly.alpha,
-          style:'paint-order:stroke;stroke:#000;stroke-width:3px;stroke-linejoin:round'});
-        t.textContent = b.n; svg.appendChild(t);
+  function draw(svg, histA, histB, p, ptsA, ptsB, title){
+    var line = css('--line'), ink = css('--ink'), ink2 = css('--ink2');
+    txt(svg, 62, 22, 'object size on the detector input, square root of area in pixels', {size:11.5});
+
+    svg.appendChild(el('line', {x1:AX.x0, y1:AX.y, x2:AX.x1, y2:AX.y, stroke:line, 'stroke-width':1.5}));
+    for (var i = 0; i < LV.length; i++){
+      var lv = LV[i];
+      var a = (lv === 2) ? 34 : EDGE[lv - 2], b = EDGE[lv - 1];
+      svg.appendChild(el('rect', {x:X(a), y:AX.y - 118, width:X(b) - X(a), height:118,
+        fill:LCOL[i], opacity:0.06}));
+      svg.appendChild(el('line', {x1:X(b), y1:AX.y - 118, x2:X(b), y2:AX.y + 6,
+        stroke:line, 'stroke-width':1, 'stroke-dasharray':'3 3'}));
+      txt(svg, (X(a) + X(b))/2, AX.y + 20, 'p' + lv,
+        {anchor:'middle', fill:LCOL[i], bold:true, size:12.5});
+      txt(svg, X(b), AX.y + 36, String(EDGE[lv - 1]), {anchor:'middle', size:10, mono:true});
+    }
+
+    var n = Math.min(ptsA.length, ptsB.length);
+    for (var k = 0; k < n; k++){
+      var s = Math.exp(lerp(Math.log(ptsA[k]), Math.log(ptsB[k]), p));
+      var lv2 = levelOf(s), ci = Math.max(0, Math.min(2, lv2 - 2));
+      var row = k % 9, y = AX.y - 12 - row*11.6;
+      svg.appendChild(el('circle', {cx:X(s).toFixed(1), cy:y.toFixed(1), r:3.2,
+        fill:LCOL[ci], opacity:0.8}));
+    }
+
+    var BX = 530, BW = 288, BY = 68, BH = 34, GAP = 22;
+    txt(svg, BX, 22, 'share of objects on each level', {size:11.5});
+    for (var i2 = 0; i2 < LV.length; i2++){
+      var lv3 = LV[i2], y2 = BY + i2*(BH + GAP);
+      var v = lerp(histA[lv3], histB[lv3], p);
+      svg.appendChild(el('rect', {x:BX, y:y2, width:BW, height:BH, fill:'none',
+        stroke:line, 'stroke-width':1}));
+      svg.appendChild(el('rect', {x:BX, y:y2, width:(BW*v).toFixed(1), height:BH,
+        fill:LCOL[i2], opacity:0.82}));
+      svg.appendChild(el('rect', {x:BX, y:y2 - 4, width:(BW*SRC[lv3]).toFixed(1), height:BH + 8,
+        fill:'none', stroke:ink, 'stroke-width':1.4, 'stroke-dasharray':'4 3', opacity:0.7}));
+      txt(svg, BX - 10, y2 + BH/2 + 4, 'p' + lv3,
+        {anchor:'end', fill:LCOL[i2], bold:true, size:12.5});
+      txt(svg, BX + BW*v + 8, y2 + BH/2 + 4, (100*v).toFixed(0) + '%',
+        {size:12, mono:true, fill:ink});
+    }
+    svg.appendChild(el('line', {x1:BX, y1:H - 30, x2:BX + 22, y2:H - 30, stroke:ink,
+      'stroke-width':1.4, 'stroke-dasharray':'4 3', opacity:0.7}));
+    txt(svg, BX + 30, H - 26, 'what the detector was trained on', {size:11.5});
+    if (title) txt(svg, 62, H - 26, title, {size:12.5, fill:ink, bold:true});
+  }
+
+  var steps = [
+    {ms:0, hold:1800,
+     cap:'The rule is the detector’s, not ours: <span class="m">' + FPN.rule + '</span>. ' +
+       'Every object is resolved on the level its area falls in. This is the distribution the ' +
+       'detector saw while it was trained.',
+     draw:function(svg){ draw(svg, SRC, SRC, 0, P_SRC, P_SRC, 'source center, training images'); }},
+    {ms:1600, hold:1600,
+     cap:'Apply that detector at another center. The anatomy is the same and every structure is ' +
+       'visible, but it arrives smaller, so the objects slide left and pile onto <b>p2</b>. The ' +
+       'distance to the training distribution is <b>' + TV_DEF.toFixed(2) + '</b>.',
+     draw:function(svg, p){ draw(svg, SRC, DEF, p, P_SRC, P_DEF, 'target center, detector applied as is'); }},
+    {ms:1600, hold:1600,
+     cap:'Canonicalization resamples each image by its own inferred factor. The objects slide back ' +
+       'across the band edges and the histogram returns onto the training one: distance <b>' +
+       TV_TAC.toFixed(2) + '</b>, about ' + Math.round(TV_DEF/TV_TAC) + ' times smaller. Nothing ' +
+       'in the detector changed.',
+     draw:function(svg, p){ draw(svg, DEF, TAC, p, P_DEF, P_TAC, 'target center, after canonicalization'); }}
+  ];
+  new Scene('s1', 'c1', 'b1', steps);
+})();
+
+/* ================= ACT 2 : ANI ================= */
+(function(){
+  var C = CAND;
+  var lo = 1e9, hi = -1e9;
+  for (var i = 0; i < C.length; i++){
+    lo = Math.min(lo, C[i].z - 1.0, C[i].mu - 0.6);
+    hi = Math.max(hi, C[i].z + 0.4, C[i].mu + 0.6);
+  }
+  var AX = {x0:150, x1:690, y0:60, dy:33};
+  function X(v){ return AX.x0 + (AX.x1 - AX.x0)*(v - lo)/(hi - lo); }
+  function rowY(i){ return AX.y0 + i*AX.dy; }
+
+  function resp(u){
+    var r = [];
+    for (var i = 0; i < C.length; i++){
+      var c = C[i], d = c.z + u - c.mu, v = c.sg*c.sg;
+      var lik = Math.exp(-0.5*d*d/v)/(Math.sqrt(2*Math.PI)*c.sg);
+      r.push((c.p*lik)/(c.p*lik + (1 - c.p)*K.RHO_OUT + 1e-12));
+    }
+    return r;
+  }
+
+  function draw(svg, u, r, showPrior, showVote, showW){
+    var line = css('--line'), ink = css('--ink'), ink2 = css('--ink2'), acc2 = css('--accent2');
+    txt(svg, AX.x0, 30, 'where the box is  →  where its structure belongs', {size:11.5});
+    if (showW > 0.01) txt(svg, 722, 30, 'weight of the vote',
+      {size:11.5, opacity:showW.toFixed(3)});
+    svg.appendChild(el('line', {x1:AX.x0, y1:40, x2:AX.x1, y2:40, stroke:line, 'stroke-width':1}));
+
+    for (var i = 0; i < C.length; i++){
+      var c = C[i], y = rowY(i), w = r ? r[i] : 1;
+      var col = PAL[c.cls % PAL.length];
+      txt(svg, AX.x0 - 16, y + 4, c.name, {anchor:'end', fill:col, bold:true, size:12.5});
+      txt(svg, AX.x0 - 54, y + 4, 'p=' + c.p.toFixed(2), {anchor:'end', size:10.5, mono:true});
+
+      if (showPrior > 0.01){
+        svg.appendChild(el('rect', {x:X(c.mu - c.sg).toFixed(1), y:y - 7,
+          width:(X(c.mu + c.sg) - X(c.mu - c.sg)).toFixed(1), height:14, rx:3,
+          fill:col, opacity:0.15*showPrior}));
+        svg.appendChild(el('line', {x1:X(c.mu).toFixed(1), y1:y - 10, x2:X(c.mu).toFixed(1), y2:y + 10,
+          stroke:col, 'stroke-width':1.6, opacity:0.8*showPrior}));
+      }
+      var zc = c.z + u;
+      if (showVote > 0.01){
+        var x1 = X(zc), x2 = lerp(X(zc), X(c.mu), showVote);
+        var op = (0.22 + 0.68*w);
+        svg.appendChild(el('line', {x1:x1.toFixed(1), y1:y, x2:x2.toFixed(1), y2:y, stroke:acc2,
+          'stroke-width':(0.8 + 3.6*w).toFixed(2), opacity:op.toFixed(3)}));
+        var dir = (X(c.mu) >= X(zc)) ? 1 : -1;
+        svg.appendChild(el('path', {d:'M ' + x2.toFixed(1) + ' ' + (y - 4.5) + ' L ' +
+          (x2 + 6*dir).toFixed(1) + ' ' + y + ' L ' + x2.toFixed(1) + ' ' + (y + 4.5) + ' Z',
+          fill:acc2, opacity:op.toFixed(3)}));
+      }
+      svg.appendChild(el('circle', {cx:X(zc).toFixed(1), cy:y, r:4.8, fill:col}));
+
+      if (showW > 0.01){
+        svg.appendChild(el('rect', {x:722, y:y - 5, width:104, height:10, fill:line,
+          opacity:(0.55*showW).toFixed(3)}));
+        svg.appendChild(el('rect', {x:722, y:y - 5, width:(104*w).toFixed(1), height:10,
+          fill:(w < 0.5 ? css('--ink3') : acc2), opacity:showW.toFixed(3)}));
+        txt(svg, 834, y + 4, w.toFixed(2), {size:10.5, mono:true, opacity:showW.toFixed(3)});
       }
     }
-  }
-  if (tag){
-    var lines = (typeof tag === 'string') ? [tag] : tag;
-    for (var q=0;q<lines.length;q++){
-      var lab = el('text', {x:VW-14, y:28 + q*21, fill:'#ffd479',
-        'font-size': q === 0 ? 17 : 14, 'text-anchor':'end',
-        'font-family':'ui-monospace,Consolas,monospace',
-        style:'paint-order:stroke;stroke:#000;stroke-width:3px'});
-      lab.textContent = lines[q]; svg.appendChild(lab);
-    }
-  }
-}
 
-function setStep(i){
-  var ch = rail.children;
-  for (var k=0;k<ch.length;k++) ch[k].setAttribute('class', k === i ? 'step on' : 'step');
-}
-function say(h){ cap.innerHTML = h; }
-function ease(t){ return t < 0.5 ? 2*t*t : 1 - Math.pow(-2*t + 2, 2)/2; }
-
-function timeline(steps, done){
-  var tok = ++token, i = 0;
-  function next(){
-    if (tok !== token) return;
-    if (i >= steps.length){ if (done) done(); return; }
-    var st = steps[i++];
-    if (st.enter) st.enter();
-    if (st.tween){
-      var t0 = null;
-      var frame = function(ts){
-        if (tok !== token) return;
-        if (t0 === null) t0 = ts;
-        var p = Math.min(1, (ts - t0) / st.ms);
-        st.tween(ease(p));
-        if (p < 1) requestAnimationFrame(frame); else next();
-      };
-      requestAnimationFrame(frame);
-    } else {
-      setTimeout(next, st.ms);
-    }
-  }
-  next();
-}
-
-function srcLine(c){
-  var fp = c.src.length - c.r_src, n = c.src.length;
-  var head = '<b>' + n + '</b> box' + (n === 1 ? '' : 'es') + ' come' + (n === 1 ? 's' : '') + ' back. ';
-  if (c.r_src === 0){
-    return head + 'Not one of them overlaps an annotated structure by half, although all '
-      + c.n_gt + ' of them are in the frame.';
-  }
-  return head + '<b>' + c.r_src + '</b> of the ' + c.n_gt + ' annotated structures are recovered'
-    + (fp > 0 ? ', and ' + fp + ' box matches nothing' : '') + '.';
-}
-
-function storyboard(){
-  var c = C(), f = c.f, inv = 1/f;
-  var views = [[f, false], [f, true], [c.views[0], false], [c.views[2], false]];
-  var tag0 = ['resample ×1.00', 'apparent ' + inv.toFixed(2) + '× of trained'];
-  var steps = [];
-
-  steps.push({ms: 820, enter: function(){
-    setStep(0); render(1, false, [], tag0);
-    say('<b>Pass 1.</b> The frozen detector is applied once, at the scale it was trained on.');
-  }});
-  steps.push({ms: 450, enter: function(){ setStep(0); }, tween: function(p){
-    render(1, false, [{list:c.src, alpha:p, label:p > 0.6}], tag0);
-  }});
-  steps.push({ms: 1800, enter: function(){
-    setStep(0);
-    render(1, false, [{list:c.src, alpha:1, label:true}], tag0);
-    say('<b>Pass 1.</b> ' + srcLine(c) + ' The anatomy is at the wrong apparent size: it measures '
-      + inv.toFixed(2) + ' times the size this detector was trained to resolve.');
-  }});
-  steps.push({ms: 1900, enter: function(){
-    setStep(1);
-    say('<b>ANI.</b> Each box votes for the displacement that would return it to the canonical size '
-      + 'of the structure it claims to be, weighted by how plausible that size is. Three closed-form '
-      + 'updates give one factor for this image, &times;<b>' + f.toFixed(2) + '</b>.');
-  }});
-  steps.push({ms: 1500, enter: function(){
-    setStep(2);
-    say('<b>Canonicalize.</b> The frame is resampled by &times;<b>' + f.toFixed(2)
-      + '</b>, so the structures reappear at the size the detector expects.');
-  }, tween: function(p){
-    var k = 1 + (f - 1)*p;
-    render(k, false, [{list:c.src, alpha:1 - 0.8*p, label:false}],
-           ['resample ×' + k.toFixed(2), 'apparent ' + (k/f).toFixed(2) + '× of trained']);
-  }});
-  steps.push({ms: 650, enter: function(){
-    render(f, false, [], ['resample ×' + f.toFixed(2), 'apparent 1.00× of trained']);
-  }});
-
-  for (var v=0; v<views.length; v++){
-    (function(idx){
-      var vw = views[idx];
-      steps.push({ms: 640, enter: function(){
-        setStep(3);
-        render(vw[0], vw[1], [], [(vw[1] ? 'flipped, ' : '') + 'resample ×' + vw[0].toFixed(2)]);
-        say('<b>UVA.</b> Views are acquired at the inferred scale and at the quadrature nodes of its '
-          + 'spread, each with its mirror image. View ' + (idx + 1) + ' of ' + views.length
-          + ' shown; seven are used in total.');
-      }});
-    })(v);
+    var yb = rowY(C.length) + 16;
+    svg.appendChild(el('line', {x1:AX.x0 - 90, y1:yb, x2:826, y2:yb, stroke:line, 'stroke-width':1}));
+    txt(svg, AX.x0 - 90, yb + 26, 'estimate', {size:12.5, bold:true, fill:ink});
+    txt(svg, AX.x0, yb + 27, 'u = ' + u.toFixed(3) + '        f = exp(u) = ' + Math.exp(u).toFixed(3),
+      {size:15, mono:true, fill:acc2, bold:true});
   }
 
-  steps.push({ms: 560, enter: function(){
-    setStep(4);
-    say('<b>SDF.</b> The boxes of every view are fused, and one box per structure is resolved under '
-      + 'a prior on how the structures of this plane are laid out.');
-  }, tween: function(p){
-    render(f, false, [{list:c.tac, alpha:p, label:p > 0.5}], null);
-  }});
-  steps.push({ms: 10, enter: function(){
-    setStep(4);
-    render(f, false, [{list:c.tac, alpha:1, label:true}], null);
-    var fp = c.tac.length - c.r_tac;
-    say('<b>Result.</b> <b>' + c.r_tac + ' of the ' + c.n_gt + '</b> annotated structures recovered'
-      + (fp === 0 ? ', with no box left unmatched' : '')
-      + ', from seven forward passes of the same frozen detector. Nothing was trained and the '
-      + 'detector was never updated.');
-  }});
+  var r1 = C.map(function(){ return 1; });
+  var rA = TRACE[0].r, rB = TRACE[1].r, rC = TRACE[2].r;
+  var r0 = resp(0);
+  var lowest = r0.indexOf(Math.min.apply(null, r0));
 
-  timeline(steps, function(){ playing = false; btnPlay.textContent = 'replay'; });
-}
+  var steps = [
+    {ms:0, hold:1700,
+     cap:'Nine boxes come back from the first pass. Each reports a size (the dot) and claims a ' +
+       'structure (the label), with the confidence the detector gave it.',
+     draw:function(svg){ draw(svg, 0, r1, 0, 0, 0); }},
+    {ms:700, hold:1700,
+     cap:'The source prior says how large each structure usually is: a mean and a spread, estimated ' +
+       'once from the training annotations of the source center. Nothing here is learned at test time.',
+     draw:function(svg, p){ draw(svg, 0, r1, p, 0, 0); }},
+    {ms:700, hold:1700,
+     cap:'The gap between where a box is and where its structure belongs is its vote. All nine point ' +
+       'the same way, which is what a whole-image scale shift looks like.',
+     draw:function(svg, p){ draw(svg, 0, r1, 1, p, 0); }},
+    {ms:800, hold:1800,
+     cap:'First alternation, part one. Each vote is weighted by how plausible its size is under the ' +
+       'prior and by the detector’s own confidence. <b>' + C[lowest].name + '</b> at p=' +
+       C[lowest].p.toFixed(2) + ' falls to <b>' + r0[lowest].toFixed(2) + '</b>: it is probably not ' +
+       'that structure, so it barely counts. No threshold was applied.',
+     draw:function(svg, p){
+       draw(svg, 0, r1.map(function(v, i){ return lerp(1, r0[i], p); }), 1, 1, p); }},
+    {ms:1100, hold:1600,
+     cap:'First alternation, part two. The weighted mean of the votes moves the estimate to <b>u = ' +
+       TRACE[0].u.toFixed(3) + '</b>, a factor of <b>' + TRACE[0].f.toFixed(3) + '</b>. Every box ' +
+       'slides by the same amount, because there is one factor for the image, not one per box.',
+     draw:function(svg, p){ draw(svg, lerp(0, TRACE[0].u, p), r0, 1, 1, 1); }},
+    {ms:1000, hold:1600,
+     cap:'Second alternation. With the boxes closer to the prior the weights rise, the lowest from ' +
+       Math.min.apply(null, r0).toFixed(2) + ' to ' + Math.min.apply(null, rB).toFixed(2) +
+       ', and the estimate settles at <b>u = ' + TRACE[1].u.toFixed(3) + '</b>, f = ' +
+       TRACE[1].f.toFixed(3) + '.',
+     draw:function(svg, p){
+       draw(svg, lerp(TRACE[0].u, TRACE[1].u, p),
+            rA.map(function(v, i){ return lerp(v, rB[i], p); }), 1, 1, 1); }},
+    {ms:900, hold:2200,
+     cap:'Third alternation, and it has converged: <b>u = ' + TRACE[2].u.toFixed(3) + '</b>, <b>f = ' +
+       TRACE[2].f.toFixed(3) + '</b>. Three closed-form updates, no gradient, no training, and ' +
+       'nothing carried over from the previous image.',
+     draw:function(svg, p){
+       draw(svg, lerp(TRACE[1].u, TRACE[2].u, p),
+            rB.map(function(v, i){ return lerp(v, rC[i], p); }), 1, 1, 1); }}
+  ];
+  new Scene('s2', 'c2', 'b2', steps);
+})();
 
-function still(){
-  var c = C(), layers = [];
-  layers.push({list: showBefore ? c.src : c.tac, alpha:1, label:true});
-  if (showGt) layers.push({list:c.gt, alpha:0.85, dash:true, label:false});
-  render(showBefore ? 1 : c.f, false, layers,
-         showBefore ? ['resample ×1.00', 'apparent ' + (1/c.f).toFixed(2) + '× of trained']
-                    : ['resample ×' + c.f.toFixed(2), 'apparent 1.00× of trained']);
-  if (showBefore){
-    say('<b>Before.</b> ' + srcLine(c) + ' This is the frozen detector on the original frame.');
-  } else {
-    say('<b>After.</b> <b>' + c.r_tac + ' of ' + c.n_gt + '</b> annotated structures recovered, on '
-      + 'the same frame resampled by &times;' + c.f.toFixed(2) + '.');
-  }
-}
-
-function showCase(i){
-  token++; playing = false; ci = i;
-  var ch = document.getElementById('cases').children;
-  for (var k=0;k<ch.length;k++) ch[k].setAttribute('class', k === i ? 'on' : '');
-  var c = C();
-  meta.textContent = c.organ + ', ' + c.plane + '  ·  ' + c.pair + '  ·  '
-    + c.w + '×' + c.h + ' px  ·  inferred factor ×' + c.f.toFixed(2)
-    + '  ·  structures recovered ' + c.r_src + ' → ' + c.r_tac + ' of ' + c.n_gt
-    + ' at IoU ' + IOU;
-  setStep(-1);
-  render(1, false, [{list:c.src, alpha:1, label:true}],
-         ['resample ×1.00', 'apparent ' + (1/c.f).toFixed(2) + '× of trained']);
-  say('<b>' + c.organ + ', ' + c.plane + '.</b> ' + c.blurb + ' Press play.');
-  btnPlay.textContent = 'play';
-  showBefore = false; btnCmp.setAttribute('class', ''); btnCmp.textContent = 'before';
-}
-
-for (var i=0;i<CASES.length;i++){
-  (function(k){
-    var b = document.createElement('button');
-    b.textContent = CASES[k].organ + ' ×' + CASES[k].f.toFixed(2);
-    b.addEventListener('click', function(){ showCase(k); });
-    document.getElementById('cases').appendChild(b);
-  })(i);
-}
-btnPlay.addEventListener('click', function(){
-  playing = true; this.textContent = 'playing';
-  showBefore = false; btnCmp.setAttribute('class', ''); btnCmp.textContent = 'before';
-  storyboard();
-});
-btnCmp.addEventListener('click', function(){
-  token++; playing = false; btnPlay.textContent = 'play';
-  showBefore = !showBefore;
-  this.setAttribute('class', showBefore ? 'on' : '');
-  this.textContent = showBefore ? 'after' : 'before';
-  still();
-});
-btnGt.addEventListener('click', function(){
-  showGt = !showGt;
-  this.setAttribute('class', showGt ? 'on' : '');
-  if (!playing){ token++; still(); }
-});
-
+/* ================= ACT 3 : UVA ================= */
 (function(){
-  var K = ANI.constants, Cd = ANI.candidates, R = ANI.result;
-  var LO = Math.log(0.3), HI = Math.log(3);
-  var P = {l:14, r:12, t:16, b:34, w:420, h:240};
-  var PW = P.w - P.l - P.r, PH = P.h - P.t - P.b;
+  var W = 880, H = 330;
+  var LO = Math.log(0.25), HI = Math.log(1.6);
+  var P = {l:70, r:46, t:44, b:76};
+  var PW = W - P.l - P.r, PH = H - P.t - P.b;
+
   function nlp(u){
     var s = 0;
-    for (var i=0;i<Cd.length;i++){
-      var c = Cd[i], d = c.z + u - c.mu, v = c.sg*c.sg;
-      var lik = Math.exp(-0.5*d*d/v) / (Math.sqrt(2*Math.PI)*c.sg);
+    for (var i = 0; i < CAND.length; i++){
+      var c = CAND[i], d = c.z + u - c.mu, v = c.sg*c.sg;
+      var lik = Math.exp(-0.5*d*d/v)/(Math.sqrt(2*Math.PI)*c.sg);
       s -= Math.log(c.p*lik + (1 - c.p)*K.RHO_OUT);
     }
     return s + u*u/(2*K.SIGMA_U*K.SIGMA_U);
   }
-  var N = 240, xs = [], ys = [], mn = Infinity, mx = -Infinity;
-  for (var i=0;i<N;i++){
+  var N = 220, xs = [], ys = [], mn = Infinity, raw = -Infinity;
+  for (var i = 0; i < N; i++){
     var u = LO + (HI - LO)*i/(N - 1), y = nlp(u);
     xs.push(u); ys.push(y);
     if (y < mn) mn = y;
-    if (y > mx) mx = y;
+    if (y > raw) raw = y;
   }
-  var X = function(u){ return P.l + PW*(u - LO)/(HI - LO); };
-  var Y = function(y){ return P.t + PH*(mx - y)/(mx - mn); };
-  var p2 = document.getElementById('plot');
-  var ink2 = css('--ink2'), line = css('--line'), acc = css('--accent'), acc2 = css('--accent2');
-  var ticks = [0.3, 0.5, 1, 2, 3];
-  for (var t=0;t<ticks.length;t++){
-    var x = X(Math.log(ticks[t]));
-    p2.appendChild(el('line', {x1:x, y1:P.t, x2:x, y2:P.t + PH, stroke:line, 'stroke-width':1}));
-    var tl = el('text', {x:x, y:P.t + PH + 15, fill:ink2, 'font-size':10.5, 'text-anchor':'middle'});
-    tl.textContent = ticks[t]; p2.appendChild(tl);
+  var mx = mn + (raw - mn)*0.60;
+  function X(u){ return P.l + PW*(u - LO)/(HI - LO); }
+  function Y(y){ return P.t + PH*(Math.min(y, mx) - mn)/(mx - mn); }
+
+  function frame(svg){
+    var line = css('--line');
+    [0.3, 0.4, 0.5, 0.7, 1.0, 1.5].forEach(function(f){
+      var x = X(Math.log(f));
+      if (x < P.l - 1 || x > P.l + PW + 1) return;
+      svg.appendChild(el('line', {x1:x, y1:P.t, x2:x, y2:P.t + PH, stroke:line, 'stroke-width':1}));
+      txt(svg, x, P.t + PH + 18, String(f), {anchor:'middle', size:10.5, mono:true});
+    });
+    txt(svg, P.l + PW/2, H - 32, 'scale factor f', {anchor:'middle', size:12});
+    txt(svg, P.l, 26, 'how badly a factor disagrees with the nine votes', {size:11.5});
   }
-  var d = '';
-  for (var j=0;j<N;j++) d += (j ? 'L' : 'M') + X(xs[j]).toFixed(1) + ' ' + Y(ys[j]).toFixed(1) + ' ';
-  p2.appendChild(el('path', {d:d, fill:'none', stroke:acc, 'stroke-width':2}));
-  for (var k=0;k<R.views.length;k++){
-    var xv = X(Math.log(R.views[k]));
-    p2.appendChild(el('line', {x1:xv, y1:P.t + 4, x2:xv, y2:P.t + PH, stroke:acc2,
-      'stroke-width': k === 1 ? 1.8 : 1.2, 'stroke-dasharray': k === 1 ? '' : '3 3',
-      opacity: k === 1 ? 0.9 : 0.6}));
+  function curve(svg, upto){
+    var d = '', n = Math.max(2, Math.round(N*upto));
+    for (var i = 0; i < n; i++) d += (i ? 'L' : 'M') + X(xs[i]).toFixed(1) + ' ' + Y(ys[i]).toFixed(1) + ' ';
+    svg.appendChild(el('path', {d:d, fill:'none', stroke:css('--accent'), 'stroke-width':2.2}));
   }
-  p2.appendChild(el('circle', {cx:X(R.u), cy:Y(nlp(R.u)), r:4, fill:acc2}));
-  var mt = el('text', {x:X(R.u) + 8, y:Y(nlp(R.u)) - 8, fill:acc2, 'font-size':11,
-    'text-anchor':'start'});
-  mt.textContent = 'MAP'; p2.appendChild(mt);
-  var yl = el('text', {x:P.l, y:P.t + 9, fill:ink2, 'font-size':10.5});
-  yl.textContent = 'negative log-posterior'; p2.appendChild(yl);
-  var xl = el('text', {x:P.l + PW/2, y:P.h - 4, fill:ink2, 'font-size':11, 'text-anchor':'middle'});
-  xl.textContent = 'scale factor f'; p2.appendChild(xl);
-  document.getElementById('pnote').innerHTML = 'The ' + Cd.length + ' first-pass boxes of one '
-    + ANI.example.target + ' image build this objective. Its minimum is the factor, f = <b>'
-    + R.f.toFixed(2) + '</b>; the curvature there gives a spread of ' + R.s.toFixed(2)
-    + ', which places the two extra views at the dashed lines. The deployed run refines once more '
-    + 'and ends at f = ' + R.f_deployed.toFixed(2) + '.';
+  function mapDot(svg){
+    var acc2 = css('--accent2');
+    svg.appendChild(el('circle', {cx:X(RES.u).toFixed(1), cy:Y(nlp(RES.u)).toFixed(1), r:5, fill:acc2}));
+    txt(svg, X(RES.u), Y(nlp(RES.u)) + 24, 'f = ' + RES.f.toFixed(3),
+      {anchor:'middle', fill:acc2, bold:true, size:12.5, mono:true});
+  }
+  function parabola(svg, p){
+    var acc2 = css('--accent2'), s = RES.s, y0 = nlp(RES.u), a = 1/(2*s*s), d = '';
+    for (var i = 0; i <= 60; i++){
+      var du = (-2.3*s) + (4.6*s)*i/60, u = RES.u + du, y = y0 + a*du*du;
+      if (u < LO || u > HI) continue;
+      d += (d ? 'L' : 'M') + X(u).toFixed(1) + ' ' + Y(y).toFixed(1) + ' ';
+    }
+    svg.appendChild(el('path', {d:d, fill:'none', stroke:acc2, 'stroke-width':1.6,
+      'stroke-dasharray':'5 4', opacity:p.toFixed(3)}));
+    var yb = Y(y0) + 4;
+    svg.appendChild(el('line', {x1:X(RES.u - s).toFixed(1), y1:yb, x2:X(RES.u + s).toFixed(1), y2:yb,
+      stroke:acc2, 'stroke-width':1.4, opacity:p.toFixed(3)}));
+    [-1, 1].forEach(function(k){
+      svg.appendChild(el('line', {x1:X(RES.u + k*s).toFixed(1), y1:yb - 5,
+        x2:X(RES.u + k*s).toFixed(1), y2:yb + 5, stroke:acc2, 'stroke-width':1.4,
+        opacity:p.toFixed(3)}));
+    });
+    txt(svg, X(RES.u), yb + 40, 's = ' + RES.s.toFixed(3),
+      {anchor:'middle', size:12, mono:true, fill:acc2, opacity:p.toFixed(3)});
+  }
+  function nodes(svg, p){
+    var ok = css('--ok');
+    RES.views.forEach(function(f, k){
+      var x = X(Math.log(f));
+      svg.appendChild(el('line', {x1:x.toFixed(1), y1:P.t + 8, x2:x.toFixed(1), y2:P.t + PH,
+        stroke:ok, 'stroke-width':k === 1 ? 2 : 1.5,
+        'stroke-dasharray':k === 1 ? '' : '4 3', opacity:p.toFixed(3)}));
+      txt(svg, x, P.t - 8, f.toFixed(2),
+        {anchor:'middle', size:11, mono:true, fill:ok, opacity:p.toFixed(3)});
+    });
+  }
+  function tiles(svg, shown){
+    var ink2 = css('--ink2'), acc = css('--accent'), acc2 = css('--accent2');
+    var seq = [
+      {f:1.0, flip:false, lab:'pass 1'},
+      {f:RES.views[1], flip:false, lab:'canonical'},
+      {f:RES.views[1], flip:true, lab:'mirrored'},
+      {f:RES.views[0], flip:false, lab:'lower node'},
+      {f:RES.views[0], flip:true, lab:'mirrored'},
+      {f:RES.views[2], flip:false, lab:'upper node'},
+      {f:RES.views[2], flip:true, lab:'mirrored'}
+    ];
+    var slot = 116, base = 70, cy = 176;
+    for (var i = 0; i < seq.length; i++){
+      var v = seq[i], on = i < shown, cx = 60 + slot*i + slot/2;
+      var w = base*v.f*1.6, h = w*0.76;
+      var col = (i === 0) ? ink2 : (i < 3 ? acc : acc2);
+      svg.appendChild(el('rect', {x:(cx - w/2).toFixed(1), y:(cy - h/2).toFixed(1),
+        width:w.toFixed(1), height:h.toFixed(1), rx:3, fill:'none', stroke:col,
+        'stroke-width':i === 1 ? 2.2 : 1.6, 'stroke-dasharray':i >= 3 ? '4 3' : '',
+        opacity:on ? 1 : 0.13}));
+      if (v.flip){
+        svg.appendChild(el('path', {d:'M ' + (cx - 10) + ' ' + (cy + h/2 + 13) + ' L ' + (cx + 10) +
+          ' ' + (cy + h/2 + 13), stroke:col, 'stroke-width':1.3, fill:'none',
+          opacity:on ? 1 : 0.13}));
+      }
+      txt(svg, cx, 76, v.lab, {anchor:'middle', size:11.5, fill:col, opacity:on ? 1 : 0.2});
+      txt(svg, cx, 93, 'x' + v.f.toFixed(2), {anchor:'middle', size:11, mono:true,
+        opacity:on ? 1 : 0.2});
+    }
+    txt(svg, 60, 40, 'the seven views, drawn to scale', {size:11.5});
+    txt(svg, 60, H - 30, 'forward passes of the same frozen detector: ' + shown + ' of 7',
+      {size:13, fill:css('--ink'), bold:true});
+  }
+
+  var hcalc = 'h = clip(sqrt(3) * ' + RES.s.toFixed(3) + ', ' + K.H_MIN + ', ' + K.H_MAX +
+              ') = ' + RES.h.toFixed(3);
+  var steps = [
+    {ms:1200, hold:1500,
+     cap:'The votes do not only pick a factor. Together they define how badly every other factor ' +
+       'would disagree with them, and that curve is the whole output of the inference.',
+     draw:function(svg, p){ frame(svg); curve(svg, p); }},
+    {ms:500, hold:1600,
+     cap:'Its lowest point is the factor for this image, <b>f = ' + RES.f.toFixed(3) + '</b>. A flat ' +
+       'valley would mean the evidence barely prefers it; a sharp one, that it is well determined.',
+     draw:function(svg){ frame(svg); curve(svg, 1); mapDot(svg); }},
+    {ms:800, hold:1700,
+     cap:'So read the curvature there. Fitting a parabola gives a width of <b>s = ' +
+       RES.s.toFixed(3) + '</b> in log scale. This is the second thing the same objective hands ' +
+       'over, at no extra cost.',
+     draw:function(svg, p){ frame(svg); curve(svg, 1); parabola(svg, p); mapDot(svg); }},
+    {ms:700, hold:1700,
+     cap:'The extra views go at the three-point quadrature nodes of that width: ' +
+       '<span class="m">' + hcalc + '</span>, which puts them at <b>' + RES.views[0].toFixed(2) +
+       '</b> and <b>' + RES.views[2].toFixed(2) + '</b>. A confident image is bracketed tightly, an ' +
+       'ambiguous one wide.',
+     draw:function(svg, p){ frame(svg); curve(svg, 1); parabola(svg, 1); nodes(svg, p); mapDot(svg); }},
+    {ms:1500, hold:1400,
+     cap:'Each scale is taken with its mirror image, and the original pass is kept. Seven forward ' +
+       'passes in all, of the same frozen detector, on the same image resampled differently.',
+     draw:function(svg, p){ tiles(svg, Math.min(7, Math.floor(p*7.999) + (p >= 1 ? 0 : 0))); }}
+  ];
+  new Scene('s3', 'c3', 'b3', steps);
 })();
 
-var RT = ANI.results_table, html = '';
-for (var r=0;r<RT.length;r++){
-  html += '<tr><td>' + RT[r].setting + '</td><td>' + RT[r].source.toFixed(2) + '</td><td><b>'
-    + RT[r].tac7.toFixed(2) + '</b></td><td>+' + RT[r].gain.toFixed(2) + '</td></tr>';
-}
-document.querySelector('#res tbody').innerHTML = html;
+/* ================= ACT 4 : SDF ================= */
+(function(){
+  var H = 320;
+  // five of the seven views return a box for this structure; two do not
+  var NVIEWS = 7;
+  var OBS = [
+    {x:92,  y:92,  w:150, h:104, s:0.81},
+    {x:104, y:84,  w:142, h:110, s:0.88},
+    {x:99,  y:89,  w:147, h:106, s:0.86},
+    {x:112, y:96,  w:136, h:100, s:0.74},
+    {x:88,  y:80,  w:158, h:112, s:0.69}
+  ];
+  function fuse(){
+    var sw = 0, x = 0, y = 0, w = 0, h = 0;
+    for (var i = 0; i < OBS.length; i++){
+      var o = OBS[i]; sw += o.s; x += o.s*o.x; y += o.s*o.y; w += o.s*o.w; h += o.s*o.h;
+    }
+    return {x:x/sw, y:y/sw, w:w/sw, h:h/sw, s:sw/NVIEWS, naive:sw/OBS.length, sum:sw};
+  }
+  var FU = fuse();
+  var LAYOUT = [
+    {n:'LA', x:472, y:92,  w:76, h:62, c:0},
+    {n:'RA', x:568, y:88,  w:78, h:64, c:1},
+    {n:'LV', x:478, y:166, w:80, h:66, c:2},
+    {n:'SP', x:700, y:136, w:52, h:50, c:6}
+  ];
+  var RIVALS = [
+    {n:'RV', x:564, y:164, w:80, h:66, c:3, s:0.62, good:true},
+    {n:'RV', x:700, y:208, w:74, h:60, c:3, s:0.71, good:false}
+  ];
 
-showCase(0);
-window.TACDEMO = {cases: CASES, showCase: showCase, render: render, still: still,
-                  storyboard: storyboard};
+  function box(svg, b, col, o){
+    o = o || {};
+    svg.appendChild(el('rect', {x:(+b.x).toFixed(1), y:(+b.y).toFixed(1), width:(+b.w).toFixed(1),
+      height:(+b.h).toFixed(1), rx:2, fill:'none', stroke:col, 'stroke-width':o.sw || 1.5,
+      'stroke-dasharray':o.dash || '', opacity:(o.op === undefined ? 1 : o.op).toFixed(3)}));
+    if (o.label) txt(svg, +b.x + 3, +b.y - 5, o.label,
+      {fill:col, size:11.5, bold:true, opacity:(o.op === undefined ? 1 : o.op).toFixed(3)});
+  }
+
+  function left(outer, mode, p){
+    var svg = el('g', {transform:'translate(228,0)'});
+    outer.appendChild(svg);
+    var line = css('--line'), acc = css('--accent'), ok = css('--ok');
+    txt(svg, 62, 30, 'one structure, as the seven views see it', {size:11.5});
+    svg.appendChild(el('rect', {x:62, y:42, width:300, height:218, rx:6, fill:'none',
+      stroke:line, 'stroke-width':1}));
+    if (mode === 'obs' || mode === 'group'){
+      for (var i = 0; i < OBS.length; i++){
+        var shown = (mode === 'obs') ? (i < Math.ceil(p*OBS.length)) : true;
+        box(svg, OBS[i], acc, {op:shown ? (mode === 'group' ? 0.5 : 0.75) : 0.07, sw:1.4});
+      }
+      if (mode === 'group'){
+        svg.appendChild(el('rect', {x:84, y:74, width:180, height:130, rx:6, fill:'none',
+          stroke:ok, 'stroke-width':1.6, 'stroke-dasharray':'5 4', opacity:p.toFixed(3)}));
+        txt(svg, 84, 68, 'one cluster, pairwise IoU at least ' + K.WBF_IOU,
+          {fill:ok, size:11.5, opacity:p.toFixed(3)});
+      }
+    } else {
+      for (var j = 0; j < OBS.length; j++){
+        var o = OBS[j];
+        box(svg, {x:lerp(o.x, FU.x, p), y:lerp(o.y, FU.y, p),
+                  w:lerp(o.w, FU.w, p), h:lerp(o.h, FU.h, p)}, acc,
+            {op:0.5*(1 - p) + 0.06, sw:1.3});
+      }
+      box(svg, FU, ok, {sw:2.4, op:p});
+      txt(svg, 62, 284, 'confidence = ' + FU.sum.toFixed(2) + ' / ' + NVIEWS + ' views = ' +
+        FU.s.toFixed(2), {size:12.5, mono:true, fill:css('--ink'), opacity:p.toFixed(3)});
+      txt(svg, 62, 302, 'dividing by the ' + OBS.length + ' boxes instead would give ' +
+        FU.naive.toFixed(2), {size:11.5, mono:true, fill:css('--ink3'), opacity:p.toFixed(3)});
+    }
+  }
+
+  function right(outer, stage, p){
+    var svg = el('g', {transform:'translate(-191,0)'});
+    outer.appendChild(svg);
+    var line = css('--line'), ok = css('--ok'), acc2 = css('--accent2');
+    txt(svg, 442, 30, 'the plane, once every structure has a candidate', {size:11.5});
+    svg.appendChild(el('rect', {x:442, y:42, width:378, height:218, rx:6, fill:'none',
+      stroke:line, 'stroke-width':1}));
+    for (var i = 0; i < LAYOUT.length; i++){
+      box(svg, LAYOUT[i], PAL[LAYOUT[i].c % PAL.length], {sw:1.8, label:LAYOUT[i].n});
+    }
+    for (var k = 0; k < RIVALS.length; k++){
+      var rv = RIVALS[k], col = PAL[rv.c % PAL.length];
+      var op = 1, sw = 1.8, dash = '';
+      if (stage === 'pairs') dash = '4 3';
+      if (stage === 'resolve'){
+        if (rv.good){ sw = 2.6; }
+        else { op = lerp(1, 0.32, p); sw = 1.4; dash = '4 3'; }
+      }
+      box(svg, rv, col, {sw:sw, dash:dash, op:op,
+        label:rv.n + '  ' + ((stage === 'resolve' && !rv.good) ? (rv.s*K.GAMMA).toFixed(2)
+                                                              : rv.s.toFixed(2))});
+      if (stage === 'pairs'){
+        for (var j = 0; j < LAYOUT.length; j++){
+          var a = LAYOUT[j];
+          svg.appendChild(el('line', {x1:a.x + a.w/2, y1:a.y + a.h/2,
+            x2:rv.x + rv.w/2, y2:rv.y + rv.h/2, stroke:rv.good ? ok : acc2,
+            'stroke-width':1, 'stroke-dasharray':'2 3', opacity:(0.55*p).toFixed(3)}));
+        }
+      }
+    }
+    if (stage === 'resolve'){
+      txt(svg, 450, 288, 'the losing duplicate keeps x' + K.GAMMA +
+        ' of its score, it is not deleted',
+        {size:12, mono:true, fill:css('--ink'), opacity:p.toFixed(3)});
+    }
+    txt(svg, 442, H - 6, 'schematic arrangement', {size:10.5, fill:css('--ink3')});
+  }
+
+  var steps = [
+    {ms:950, hold:1500,
+     cap:'Five of the seven views return a box for this structure; two find nothing there. The ' +
+       'five disagree slightly, which is the point of taking them.',
+     draw:function(svg, p){ left(svg, 'obs', p); }},
+    {ms:600, hold:1500,
+     cap:'Boxes of one class that overlap by at least <b>' + K.WBF_IOU + '</b> form a cluster.',
+     draw:function(svg, p){ left(svg, 'group', p); }},
+    {ms:1100, hold:1800,
+     cap:'The cluster collapses to the confidence-weighted average, and its confidence is divided ' +
+       'by the number of <b>views</b>, not by the size of the cluster. Two views missed this ' +
+       'structure, so it is discounted accordingly, where dividing by the cluster size would have ' +
+       'hidden that.',
+     draw:function(svg, p){ left(svg, 'fuse', p); }},
+    {ms:600, hold:1700,
+     cap:'Do that for every structure, and some are left with two plausible boxes. Confidence alone ' +
+       'cannot choose between them: here the wrong one scores higher.',
+     draw:function(svg, p){ right(svg, 'cand', p); }},
+    {ms:850, hold:1700,
+     cap:'So add what the source center knows about where structures sit relative to each other. Each ' +
+       'candidate is scored by its own confidence plus a weight times the mean plausibility of its ' +
+       'position against every other structure, and the assignment is settled by iterated ' +
+       'conditional modes.',
+     draw:function(svg, p){ right(svg, 'pairs', p); }},
+    {ms:950, hold:2000,
+     cap:'The candidate that fits the layout wins although it was less confident. The other is ' +
+       'down-weighted by <b>' + K.GAMMA + '</b> and kept, so nothing a clinician might need is ' +
+       'thrown away, and every box is mapped back to the coordinates of the original frame.',
+     draw:function(svg, p){ right(svg, 'resolve', p); }}
+  ];
+  new Scene('s4', 'c4', 'b4', steps);
+})();
+
+/* ================= the real-frame player ================= */
+(function(){
+  var VW = 900, VH = 600;
+  var svg = document.getElementById('view'), cap = document.getElementById('vcap');
+  var meta = document.getElementById('vmeta');
+  var bPlay = document.getElementById('vplay'), bCmp = document.getElementById('vcmp'),
+      bGt = document.getElementById('vgt');
+  var ci = 0, token = 0, playing = false, showGt = false, showBefore = false;
+
+  function C(){ return CASES[ci]; }
+  function centre(c){
+    var b = c.gt.length ? c.gt : c.src;
+    if (!b.length) return {x:c.w/2, y:c.h/2};
+    var sx = 0, sy = 0;
+    for (var i = 0; i < b.length; i++){ sx += b[i].x + b[i].w/2; sy += b[i].y + b[i].h/2; }
+    return {x:sx/b.length, y:sy/b.length};
+  }
+  function anatBox(c){
+    var b = c.gt.length ? c.gt : c.src, x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9;
+    for (var i = 0; i < b.length; i++){
+      if (b[i].x < x0) x0 = b[i].x;
+      if (b[i].y < y0) y0 = b[i].y;
+      if (b[i].x + b[i].w > x1) x1 = b[i].x + b[i].w;
+      if (b[i].y + b[i].h > y1) y1 = b[i].y + b[i].h;
+    }
+    if (x1 < x0) return {w:c.w, h:c.h};
+    return {w:Math.max(1, x1 - x0), h:Math.max(1, y1 - y0)};
+  }
+  var ZOOM = {};
+  function zoomOf(c){
+    if (ZOOM[c.key] === undefined){
+      var a = anatBox(c);
+      ZOOM[c.key] = Math.min(0.62*Math.min(VW/(a.w*c.f), VH/(a.h*c.f)),
+                             1.50*Math.min(VW/c.w, VH/c.h));
+    }
+    return ZOOM[c.key];
+  }
+  function render(k, flip, layers, tag){
+    var c = C(), s = zoomOf(c)*k, cen = centre(c);
+    var tx = VW/2 - cen.x*s, ty = VH/2 - cen.y*s;
+    clear(svg);
+    svg.appendChild(el('rect', {x:0, y:0, width:VW, height:VH, fill:'#000'}));
+    var tr = 'translate(' + tx.toFixed(2) + ',' + ty.toFixed(2) + ') scale(' + s.toFixed(5) + ')';
+    if (flip) tr += ' translate(' + c.w + ',0) scale(-1,1)';
+    var g = el('g', {transform:tr});
+    var im = el('image', {x:0, y:0, width:c.w, height:c.h, preserveAspectRatio:'none'});
+    im.setAttributeNS('http://www.w3.org/1999/xlink', 'href', c.asset);
+    im.setAttribute('href', c.asset);
+    g.appendChild(im); svg.appendChild(g);
+    for (var L = 0; L < layers.length; L++){
+      var ly = layers[L];
+      if (!ly || ly.alpha <= 0.01) continue;
+      for (var i = 0; i < ly.list.length; i++){
+        var b = ly.list[i];
+        var col = ly.dash ? '#ffffff' : PAL[((b.c % PAL.length) + PAL.length) % PAL.length];
+        var bx = flip ? (c.w - (b.x + b.w)) : b.x;
+        var px = tx + bx*s, py = ty + b.y*s;
+        svg.appendChild(el('rect', {x:px.toFixed(1), y:py.toFixed(1),
+          width:Math.max(1, b.w*s).toFixed(1), height:Math.max(1, b.h*s).toFixed(1),
+          fill:'none', stroke:col, 'stroke-width':ly.dash ? 1.4 : 2.2,
+          'stroke-dasharray':ly.dash ? '5 4' : '', opacity:ly.alpha}));
+        if (ly.label && px > -60 && px < VW + 60 && py > -30 && py < VH + 30){
+          var t = el('text', {x:(px + 3).toFixed(1), y:Math.max(13, py - 4).toFixed(1), fill:col,
+            'font-size':13, 'font-weight':600, opacity:ly.alpha,
+            style:'paint-order:stroke;stroke:#000;stroke-width:3px;stroke-linejoin:round'});
+          t.textContent = b.n; svg.appendChild(t);
+        }
+      }
+    }
+    if (tag){
+      var lines = (typeof tag === 'string') ? [tag] : tag;
+      for (var q = 0; q < lines.length; q++){
+        var lab = el('text', {x:VW - 14, y:28 + q*21, fill:'#ffd479',
+          'font-size':q === 0 ? 17 : 14, 'text-anchor':'end',
+          'font-family':'ui-monospace,Consolas,monospace',
+          style:'paint-order:stroke;stroke:#000;stroke-width:3px'});
+        lab.textContent = lines[q]; svg.appendChild(lab);
+      }
+    }
+  }
+  function say(h){ cap.innerHTML = h; }
+  function srcLine(c){
+    var fp = c.src.length - c.r_src, n = c.src.length;
+    var head = '<b>' + n + '</b> box' + (n === 1 ? '' : 'es') + ' come' + (n === 1 ? 's' : '') + ' back. ';
+    if (c.r_src === 0){
+      return head + 'Not one of them overlaps an annotated structure by half, although all ' +
+        c.n_gt + ' of them are in the frame.';
+    }
+    return head + '<b>' + c.r_src + '</b> of the ' + c.n_gt + ' annotated structures are recovered' +
+      (fp > 0 ? ', and ' + fp + ' box matches nothing' : '') + '.';
+  }
+  function timeline(steps, done){
+    var tok = ++token, i = 0;
+    function next(){
+      if (tok !== token) return;
+      if (i >= steps.length){ if (done) done(); return; }
+      var st = steps[i++];
+      if (st.enter) st.enter();
+      if (st.tween){
+        var t0 = null;
+        var fr = function(ts){
+          if (tok !== token) return;
+          if (t0 === null) t0 = ts;
+          var p = Math.min(1, (ts - t0)/st.ms);
+          st.tween(ease(p));
+          if (p < 1) requestAnimationFrame(fr); else next();
+        };
+        requestAnimationFrame(fr);
+      } else setTimeout(next, st.ms);
+    }
+    next();
+  }
+  function storyboard(){
+    var c = C(), f = c.f, inv = 1/f;
+    var views = [[f, false], [f, true], [c.views[0], false], [c.views[2], false]];
+    var tag0 = ['resample x1.00', 'apparent ' + inv.toFixed(2) + 'x of trained'];
+    var steps = [];
+    steps.push({ms:800, enter:function(){
+      render(1, false, [], tag0);
+      say('<b>Pass 1.</b> The frozen detector is applied once, at the scale it was trained on.');
+    }});
+    steps.push({ms:450, tween:function(p){
+      render(1, false, [{list:c.src, alpha:p, label:p > 0.6}], tag0); }});
+    steps.push({ms:1800, enter:function(){
+      render(1, false, [{list:c.src, alpha:1, label:true}], tag0);
+      say('<b>Pass 1.</b> ' + srcLine(c) + ' It measures ' + inv.toFixed(2) +
+        ' times the size this detector was trained to resolve.');
+    }});
+    steps.push({ms:1700, enter:function(){
+      say('<b>ANI.</b> The boxes vote, and three closed-form updates give one factor for this ' +
+        'image, x<b>' + f.toFixed(2) + '</b>.');
+    }});
+    steps.push({ms:1500, enter:function(){
+      say('<b>Canonicalize.</b> The frame is resampled by x<b>' + f.toFixed(2) +
+        '</b>, so the structures reappear at the size the detector expects.');
+    }, tween:function(p){
+      var k = 1 + (f - 1)*p;
+      render(k, false, [{list:c.src, alpha:1 - 0.8*p, label:false}],
+        ['resample x' + k.toFixed(2), 'apparent ' + (k/f).toFixed(2) + 'x of trained']);
+    }});
+    for (var v = 0; v < views.length; v++){
+      (function(idx){
+        var vw = views[idx];
+        steps.push({ms:620, enter:function(){
+          render(vw[0], vw[1], [], [(vw[1] ? 'mirrored, ' : '') + 'resample x' + vw[0].toFixed(2)]);
+          say('<b>UVA.</b> Views are acquired at the inferred scale and at the quadrature nodes of ' +
+            'its spread, each with its mirror image. View ' + (idx + 1) + ' of ' + views.length +
+            ' shown; seven are used.');
+        }});
+      })(v);
+    }
+    steps.push({ms:560, enter:function(){
+      say('<b>SDF.</b> The boxes of every view are fused and resolved under the layout prior.');
+    }, tween:function(p){
+      render(f, false, [{list:c.tac, alpha:p, label:p > 0.5}], null); }});
+    steps.push({ms:10, enter:function(){
+      render(f, false, [{list:c.tac, alpha:1, label:true}], null);
+      var fp = c.tac.length - c.r_tac;
+      say('<b>Result.</b> <b>' + c.r_tac + ' of the ' + c.n_gt + '</b> annotated structures ' +
+        'recovered' + (fp === 0 ? ', with no box left unmatched' : '') +
+        ', from seven forward passes of the same frozen detector.');
+    }});
+    timeline(steps, function(){ playing = false; bPlay.textContent = 'replay'; });
+  }
+  function still(){
+    var c = C(), layers = [];
+    layers.push({list:showBefore ? c.src : c.tac, alpha:1, label:true});
+    if (showGt) layers.push({list:c.gt, alpha:0.85, dash:true, label:false});
+    render(showBefore ? 1 : c.f, false, layers,
+      showBefore ? ['resample x1.00', 'apparent ' + (1/c.f).toFixed(2) + 'x of trained']
+                 : ['resample x' + c.f.toFixed(2), 'apparent 1.00x of trained']);
+    say(showBefore
+      ? '<b>Before.</b> ' + srcLine(c) + ' This is the frozen detector on the original frame.'
+      : '<b>After.</b> <b>' + c.r_tac + ' of ' + c.n_gt + '</b> annotated structures recovered, on ' +
+        'the same frame resampled by x' + c.f.toFixed(2) + '.');
+  }
+  function showCase(i){
+    token++; playing = false; ci = i;
+    var ch = document.getElementById('cases').children;
+    for (var k = 0; k < ch.length; k++) ch[k].setAttribute('class', k === i ? 'on' : '');
+    var c = C();
+    meta.textContent = c.organ + ', ' + c.plane + '  |  ' + c.pair + '  |  ' + c.w + 'x' + c.h +
+      ' px  |  inferred factor x' + c.f.toFixed(2) + '  |  structures recovered ' + c.r_src +
+      ' -> ' + c.r_tac + ' of ' + c.n_gt + ' at IoU ' + IOU;
+    render(1, false, [{list:c.src, alpha:1, label:true}],
+      ['resample x1.00', 'apparent ' + (1/c.f).toFixed(2) + 'x of trained']);
+    say('<b>' + c.organ + ', ' + c.plane + '.</b> ' + c.blurb + ' Press play.');
+    bPlay.textContent = 'play';
+    showBefore = false; bCmp.setAttribute('class', ''); bCmp.textContent = 'before';
+  }
+  for (var i = 0; i < CASES.length; i++){
+    (function(k){
+      var b = document.createElement('button');
+      b.textContent = CASES[k].organ + ' x' + CASES[k].f.toFixed(2);
+      b.addEventListener('click', function(){ showCase(k); });
+      document.getElementById('cases').appendChild(b);
+    })(i);
+  }
+  bPlay.addEventListener('click', function(){
+    playing = true; this.textContent = 'playing';
+    showBefore = false; bCmp.setAttribute('class', ''); bCmp.textContent = 'before';
+    storyboard();
+  });
+  bCmp.addEventListener('click', function(){
+    token++; playing = false; bPlay.textContent = 'play';
+    showBefore = !showBefore;
+    this.setAttribute('class', showBefore ? 'on' : '');
+    this.textContent = showBefore ? 'after' : 'before';
+    still();
+  });
+  bGt.addEventListener('click', function(){
+    showGt = !showGt;
+    this.setAttribute('class', showGt ? 'on' : '');
+    if (!playing){ token++; still(); }
+  });
+  showCase(0);
+  window.TACDEMO = {cases:CASES, showCase:showCase, still:still, storyboard:storyboard,
+                    acts:SCENES};
+})();
+
+/* results */
+(function(){
+  var RT = ANI.results_table, html = '';
+  for (var r = 0; r < RT.length; r++){
+    html += '<tr><td>' + RT[r].setting + '</td><td>' + RT[r].source.toFixed(2) + '</td><td><b>' +
+      RT[r].tac7.toFixed(2) + '</b></td><td>+' + RT[r].gain.toFixed(2) + '</td></tr>';
+  }
+  document.querySelector('#res tbody').innerHTML = html;
+})();
 })();
 </script>
 </body>
