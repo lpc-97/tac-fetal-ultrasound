@@ -23,22 +23,27 @@ is a few hundred Gaussian statistics over structure sizes and relative positions
 
 ## Interactive walkthrough
 
-<https://lpc-97.github.io/tac-fetal-ultrasound/> explains the method as four stepped animations,
-each one driven by the measurements behind the paper rather than by a sketch.
+<https://lpc-97.github.io/tac-fetal-ultrasound/> opens with the whole method played out on one real
+frame, in five beats:
 
-1. **The problem.** Objects slide across the band edges of the detector's own level-assignment rule,
-   `level = clip(floor(4 + log2(sqrt(area)/224)), 2, 5)`, and the level histogram moves off the one
-   the detector was trained on. The three histograms are measured on the four-chamber view.
-2. **ANI.** The nine first-pass boxes of a real image vote for one factor. The three alternations
-   replay the intermediate values the deployed estimator wrote, responsibilities included.
-3. **UVA.** The objective, the parabola fitted at its minimum, the width that comes out of the
-   curvature, and the quadrature nodes the extra views are placed at.
-4. **SDF.** Weighted fusion over views rather than over cluster size, then resolution of a duplicate
-   under the pairwise layout prior.
+1. **Look once.** The frozen detector returns nine boxes, and not one of them lands on a structure.
+2. **Compare.** Each box claims a structure, and the source prior says how large that structure
+   usually is. The dashed outline is that size; the box overshoots it.
+3. **Agree on a number.** Each box alone implies a factor. On this frame they run from x0.33 to
+   x0.51, and the weighted consensus is x0.44.
+4. **Resample.** The frame is resampled and the boxes shrink onto the dashed outlines. A second
+   pass on the corrected frame settles the factor at x0.33.
+5. **Look again.** Eight of the eight annotated structures are recovered, against none before.
 
-A fifth panel runs the same four steps on four real test frames. Colored boxes are what the frozen
-detector actually produced, and a structure counts as recovered when a box of its class overlaps the
-annotation by at least half:
+Every box is one the frozen detector actually produced and every factor is one the deployed code
+computed; `build/export_demo_cases.py` writes them, including the per-box factor and the first-round
+consensus.
+
+Below that, four stepped animations open up the mechanisms for anyone who wants them: how the level
+assignment of the feature pyramid moves under a scale shift (measured histograms), the three
+closed-form alternations of the estimator (the deployed intermediate values), the curvature that
+places the extra views, and the fusion rule followed by resolution under the layout prior. A fifth
+panel repeats the five beats on four real frames:
 
 | frame | shift | structures recovered |
 | --- | --- | --- |
