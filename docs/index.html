@@ -61,6 +61,9 @@ th{color:var(--ink2);font-weight:600;font-size:12.2px}
 .note{font-size:12.6px;color:var(--ink2);margin-top:9px}
 .foot{margin-top:46px;padding-top:16px;border-top:1px solid var(--line);font-size:13px;color:var(--ink2)}
 
+.hero{margin:22px 0 0}
+.hero .stagebox{border-radius:12px}
+.hero .note{margin-top:10px}
 .stagebox{position:relative;background:#000;border:1px solid var(--line);
   border-radius:9px;overflow:hidden}
 #view{display:block;width:100%;height:auto;background:#000}
@@ -78,8 +81,30 @@ th{color:var(--ink2);font-weight:600;font-size:12.2px}
 <div class="wrap">
 
 <h1>Test-time Anatomical Canonicalization</h1>
-<p class="sub">A structure detector trained at one hospital, adapted to another on a single unlabeled
-image, with no training and no access to source data. Four steps, animated.</p>
+<p class="sub">A structure detector trained at one hospital, adapted to another on a single
+unlabeled image, with no training and no access to source data.</p>
+
+<div class="hero">
+  <div class="stagebox">
+    <svg id="hero" viewBox="0 0 900 600" preserveAspectRatio="xMidYMid meet" role="img"
+         aria-label="The whole method on one real fetal ultrasound frame"></svg>
+    <div class="vcap" id="hcap"></div>
+  </div>
+  <div class="bar">
+    <button class="play" id="hplay">pause</button>
+    <button id="hrestart">restart</button>
+    <span class="stepn" id="hphase"></span>
+  </div>
+  <p class="note" id="hnote"></p>
+</div>
+
+<h3 style="margin:46px 0 4px">In one sentence</h3>
+<p>The image arrives at the wrong size for the detector. Work out by how much, using only what the
+detector has already found. Resample. Look again. Everything below is how each of those four words is
+done, and why none of them needs a label, a gradient step or a second image.</p>
+
+<h3 style="margin:40px 0 4px">The details</h3>
+<p class="sub" style="margin-bottom:0">Four mechanisms, each stepped at your own pace.</p>
 
 <div class="act">
   <h2>STEP 1 &middot; THE PROBLEM</h2>
@@ -176,7 +201,7 @@ baseline closes 5 percent.</p>
 
 </div>
 
-<script id="cases-data" type="application/json">{"iou_threshold":0.5,"min_score":0.3,"cases":[{"key":"c3_small_f285","asset":"assets/heart_small.jpg","organ":"Heart","plane":"four-chamber view","pair":"center 1 model, center 3 image","blurb":"The heart is small in this screen capture, and the single box that comes back lands on nothing.","w":720,"h":576,"f":2.8534,"s0":800,"n_gt":9,"r_src":0,"r_tac":7,"gt":[{"x":324,"y":246,"w":28,"h":25,"c":1,"n":"RA","s":1.0},{"x":268,"y":255,"w":41,"h":41,"c":6,"n":"SP","s":1.0},{"x":313,"y":263,"w":28,"h":27,"c":0,"n":"LA","s":1.0},{"x":334,"y":271,"w":41,"h":30,"c":2,"n":"LV","s":1.0},{"x":300,"y":272,"w":14,"h":15,"c":7,"n":"DAO","s":1.0},{"x":332,"y":264,"w":20,"h":18,"c":5,"n":"CRO","s":1.0},{"x":341,"y":264,"w":34,"h":21,"c":4,"n":"VS","s":1.0},{"x":284,"y":213,"w":79,"h":28,"c":8,"n":"RIB","s":1.0},{"x":287,"y":298,"w":78,"h":28,"c":8,"n":"RIB","s":1.0}],"src":[{"x":328.5,"y":316.8,"w":37.4,"h":32.7,"c":7,"n":"DAO","s":0.759}],"tac":[{"x":282.9,"y":215.1,"w":78.5,"h":27.1,"c":8,"n":"RIB","s":0.792},{"x":268.9,"y":252.2,"w":38.6,"h":40.7,"c":6,"n":"SP","s":0.791},{"x":321.3,"y":244.9,"w":33.1,"h":26.4,"c":1,"n":"RA","s":0.712},{"x":284.7,"y":296.9,"w":79.7,"h":31.3,"c":8,"n":"RIB","s":0.694},{"x":312.2,"y":261.4,"w":29.4,"h":26.5,"c":0,"n":"LA","s":0.643},{"x":382.2,"y":330.2,"w":22.4,"h":19.9,"c":7,"n":"DAO","s":0.399},{"x":333.1,"y":262.9,"w":17.5,"h":18.1,"c":5,"n":"CRO","s":0.399},{"x":333.9,"y":268.3,"w":42.2,"h":31.4,"c":2,"n":"LV","s":0.389}],"views":[2.2899,2.8534,3.5556]},{"key":"c2_small_f033","asset":"assets/heart_large.jpg","organ":"Heart","plane":"four-chamber view","pair":"center 3 model, center 2 image","blurb":"The opposite shift. The heart fills the sector, and the nine boxes of the first pass all land on nothing.","w":1024,"h":768,"f":0.3263,"s0":800,"n_gt":8,"r_src":0,"r_tac":8,"gt":[{"x":757,"y":414,"w":128,"h":119,"c":7,"n":"DAO","s":1.0},{"x":855,"y":331,"w":165,"h":255,"c":6,"n":"SP","s":1.0},{"x":154,"y":450,"w":423,"h":288,"c":2,"n":"LV","s":1.0},{"x":480.2,"y":289.7,"w":251.3,"h":267.9,"c":0,"n":"LA","s":1.0},{"x":127,"y":406.5,"w":290.5,"h":243.5,"c":4,"n":"VS","s":1.0},{"x":87.1,"y":306.9,"w":342.1,"h":295.9,"c":3,"n":"RV","s":1.0},{"x":316.1,"y":176.6,"w":259.7,"h":217.2,"c":1,"n":"RA","s":1.0},{"x":355.9,"y":350.3,"w":175.6,"h":133.0,"c":5,"n":"CR","s":1.0}],"src":[{"x":739.4,"y":351.5,"w":206.4,"h":215.9,"c":6,"n":"SP","s":0.998},{"x":319.0,"y":534.3,"w":194.0,"h":129.0,"c":4,"n":"VS","s":0.873},{"x":231.0,"y":494.5,"w":254.8,"h":181.2,"c":3,"n":"RV","s":0.797},{"x":248.9,"y":497.9,"w":231.5,"h":191.2,"c":2,"n":"LV","s":0.782},{"x":411.3,"y":452.9,"w":238.2,"h":180.1,"c":0,"n":"LA","s":0.774},{"x":403.0,"y":443.9,"w":265.5,"h":201.3,"c":3,"n":"RV","s":0.634},{"x":224.0,"y":264.2,"w":276.8,"h":187.3,"c":2,"n":"LV","s":0.596},{"x":138.0,"y":324.3,"w":242.4,"h":220.1,"c":0,"n":"LA","s":0.475},{"x":464.8,"y":329.7,"w":188.9,"h":140.9,"c":0,"n":"LA","s":0.419}],"tac":[{"x":749.8,"y":402.7,"w":138.0,"h":135.9,"c":7,"n":"DAO","s":0.856},{"x":318.4,"y":333.7,"w":221.9,"h":199.4,"c":5,"n":"CR","s":0.8},{"x":124.9,"y":409.1,"w":311.2,"h":226.4,"c":4,"n":"VS","s":0.8},{"x":299.7,"y":176.4,"w":270.6,"h":240.5,"c":1,"n":"RA","s":0.8},{"x":75.8,"y":287.0,"w":315.4,"h":314.9,"c":3,"n":"RV","s":0.8},{"x":463.0,"y":335.4,"w":261.0,"h":250.5,"c":0,"n":"LA","s":0.8},{"x":172.9,"y":453.5,"w":387.8,"h":246.7,"c":2,"n":"LV","s":0.8},{"x":813.0,"y":284.2,"w":199.5,"h":290.1,"c":6,"n":"SP","s":0.602}],"views":[0.2619,0.3263,0.4066]},{"key":"abd_ph_f157","asset":"assets/abdomen.jpg","organ":"Abdomen","plane":"transverse view","pair":"GE model, Philips image","blurb":"A milder cross-vendor shift, where the first pass is already close and the correction is small.","w":766,"h":586,"f":1.5705,"s0":700,"n_gt":5,"r_src":4,"r_tac":4,"gt":[{"x":358,"y":389,"w":58,"h":52,"c":1,"n":"S","s":1.0},{"x":338,"y":300,"w":174,"h":164,"c":0,"n":"N","s":1.0},{"x":376,"y":337,"w":46,"h":40,"c":3,"n":"ST","s":1.0},{"x":412,"y":400,"w":85,"h":55,"c":2,"n":"R","s":1.0},{"x":402,"y":388,"w":20,"h":18,"c":6,"n":"AO","s":1.0}],"src":[{"x":336.7,"y":295.1,"w":173.5,"h":168.3,"c":0,"n":"N","s":1.0},{"x":371.6,"y":337.6,"w":48.3,"h":37.5,"c":3,"n":"ST","s":0.998},{"x":412.3,"y":395.3,"w":80.6,"h":59.2,"c":2,"n":"R","s":0.997},{"x":356.2,"y":400.1,"w":59.8,"h":36.4,"c":1,"n":"S","s":0.743},{"x":381.2,"y":400.5,"w":28.1,"h":38.3,"c":1,"n":"S","s":0.337}],"tac":[{"x":335.3,"y":299.1,"w":179.7,"h":160.7,"c":0,"n":"N","s":1.0},{"x":375.9,"y":336.3,"w":44.9,"h":39.0,"c":3,"n":"ST","s":0.998},{"x":410.6,"y":391.6,"w":84.7,"h":61.5,"c":2,"n":"R","s":0.981},{"x":357.1,"y":388.7,"w":61.8,"h":57.2,"c":1,"n":"S","s":0.666}],"views":[1.2604,1.5705,1.957]},{"key":"spine_sa_f205","asset":"assets/spine.jpg","organ":"Spine","plane":"sagittal view","pair":"GE model, Samsung image","blurb":"An elongated plane, where the first pass is also close but carries one box that matches nothing.","w":720,"h":576,"f":2.0545,"s0":700,"n_gt":4,"r_src":4,"r_tac":4,"gt":[{"x":258,"y":173,"w":224,"h":72,"c":0,"n":"SC","s":1.0},{"x":271,"y":187,"w":209,"h":45,"c":1,"n":"VAOC","s":1.0},{"x":276,"y":202,"w":211,"h":42,"c":4,"n":"VOC","s":1.0},{"x":265,"y":206,"w":36,"h":32,"c":5,"n":"DS","s":1.0}],"src":[{"x":274.4,"y":204.0,"w":209.8,"h":41.9,"c":4,"n":"VOC","s":1.0},{"x":254.5,"y":181.3,"w":229.0,"h":57.8,"c":0,"n":"SC","s":1.0},{"x":262.7,"y":200.4,"w":41.6,"h":37.3,"c":5,"n":"DS","s":0.999},{"x":272.0,"y":189.5,"w":210.1,"h":45.8,"c":1,"n":"VAOC","s":0.997},{"x":353.1,"y":190.3,"w":87.5,"h":19.2,"c":2,"n":"MS","s":0.441}],"tac":[{"x":260.3,"y":179.6,"w":222.6,"h":63.7,"c":0,"n":"SC","s":1.0},{"x":263.3,"y":201.2,"w":38.9,"h":35.9,"c":5,"n":"DS","s":1.0},{"x":275.9,"y":205.2,"w":178.6,"h":36.8,"c":4,"n":"VOC","s":0.999},{"x":275.5,"y":191.3,"w":208.1,"h":44.5,"c":1,"n":"VAOC","s":0.921}],"views":[1.6488,2.0545,2.56]}]}</script>
+<script id="cases-data" type="application/json">{"iou_threshold":0.5,"min_score":0.3,"cases":[{"key":"c3_small_f285","asset":"assets/heart_small.jpg","organ":"Heart","plane":"four-chamber view","pair":"center 1 model, center 3 image","blurb":"The heart is small in this screen capture, and the single box that comes back lands on nothing.","w":720,"h":576,"f":2.8534,"s0":800,"n_gt":9,"r_src":0,"r_tac":7,"f_round1":1.3724,"gt":[{"x":324,"y":246,"w":28,"h":25,"c":1,"n":"RA","s":1.0},{"x":268,"y":255,"w":41,"h":41,"c":6,"n":"SP","s":1.0},{"x":313,"y":263,"w":28,"h":27,"c":0,"n":"LA","s":1.0},{"x":334,"y":271,"w":41,"h":30,"c":2,"n":"LV","s":1.0},{"x":300,"y":272,"w":14,"h":15,"c":7,"n":"DAO","s":1.0},{"x":332,"y":264,"w":20,"h":18,"c":5,"n":"CRO","s":1.0},{"x":341,"y":264,"w":34,"h":21,"c":4,"n":"VS","s":1.0},{"x":284,"y":213,"w":79,"h":28,"c":8,"n":"RIB","s":1.0},{"x":287,"y":298,"w":78,"h":28,"c":8,"n":"RIB","s":1.0}],"src":[{"x":328.5,"y":316.8,"w":37.4,"h":32.7,"c":7,"n":"DAO","s":0.759,"vote":1.3959}],"tac":[{"x":282.9,"y":215.1,"w":78.5,"h":27.1,"c":8,"n":"RIB","s":0.792},{"x":268.9,"y":252.2,"w":38.6,"h":40.7,"c":6,"n":"SP","s":0.791},{"x":321.3,"y":244.9,"w":33.1,"h":26.4,"c":1,"n":"RA","s":0.712},{"x":284.7,"y":296.9,"w":79.7,"h":31.3,"c":8,"n":"RIB","s":0.694},{"x":312.2,"y":261.4,"w":29.4,"h":26.5,"c":0,"n":"LA","s":0.643},{"x":382.2,"y":330.2,"w":22.4,"h":19.9,"c":7,"n":"DAO","s":0.399},{"x":333.1,"y":262.9,"w":17.5,"h":18.1,"c":5,"n":"CRO","s":0.399},{"x":333.9,"y":268.3,"w":42.2,"h":31.4,"c":2,"n":"LV","s":0.389}],"views":[2.2899,2.8534,3.5556]},{"key":"c2_small_f033","asset":"assets/heart_large.jpg","organ":"Heart","plane":"four-chamber view","pair":"center 3 model, center 2 image","blurb":"The opposite shift. The heart fills the sector, and the nine boxes of the first pass all land on nothing.","w":1024,"h":768,"f":0.3263,"s0":800,"n_gt":8,"r_src":0,"r_tac":8,"f_round1":0.4411,"gt":[{"x":757,"y":414,"w":128,"h":119,"c":7,"n":"DAO","s":1.0},{"x":855,"y":331,"w":165,"h":255,"c":6,"n":"SP","s":1.0},{"x":154,"y":450,"w":423,"h":288,"c":2,"n":"LV","s":1.0},{"x":480.2,"y":289.7,"w":251.3,"h":267.9,"c":0,"n":"LA","s":1.0},{"x":127,"y":406.5,"w":290.5,"h":243.5,"c":4,"n":"VS","s":1.0},{"x":87.1,"y":306.9,"w":342.1,"h":295.9,"c":3,"n":"RV","s":1.0},{"x":316.1,"y":176.6,"w":259.7,"h":217.2,"c":1,"n":"RA","s":1.0},{"x":355.9,"y":350.3,"w":175.6,"h":133.0,"c":5,"n":"CR","s":1.0}],"src":[{"x":739.4,"y":351.5,"w":206.4,"h":215.9,"c":6,"n":"SP","s":0.998,"vote":0.5087},{"x":319.0,"y":534.3,"w":194.0,"h":129.0,"c":4,"n":"VS","s":0.873,"vote":0.4936},{"x":231.0,"y":494.5,"w":254.8,"h":181.2,"c":3,"n":"RV","s":0.797,"vote":0.4404},{"x":248.9,"y":497.9,"w":231.5,"h":191.2,"c":2,"n":"LV","s":0.782,"vote":0.4595},{"x":411.3,"y":452.9,"w":238.2,"h":180.1,"c":0,"n":"LA","s":0.774,"vote":0.3625},{"x":403.0,"y":443.9,"w":265.5,"h":201.3,"c":3,"n":"RV","s":0.634,"vote":0.4094},{"x":224.0,"y":264.2,"w":276.8,"h":187.3,"c":2,"n":"LV","s":0.596,"vote":0.4246},{"x":138.0,"y":324.3,"w":242.4,"h":220.1,"c":0,"n":"LA","s":0.475,"vote":0.3251},{"x":464.8,"y":329.7,"w":188.9,"h":140.9,"c":0,"n":"LA","s":0.419,"vote":0.4602}],"tac":[{"x":749.8,"y":402.7,"w":138.0,"h":135.9,"c":7,"n":"DAO","s":0.856},{"x":318.4,"y":333.7,"w":221.9,"h":199.4,"c":5,"n":"CR","s":0.8},{"x":124.9,"y":409.1,"w":311.2,"h":226.4,"c":4,"n":"VS","s":0.8},{"x":299.7,"y":176.4,"w":270.6,"h":240.5,"c":1,"n":"RA","s":0.8},{"x":75.8,"y":287.0,"w":315.4,"h":314.9,"c":3,"n":"RV","s":0.8},{"x":463.0,"y":335.4,"w":261.0,"h":250.5,"c":0,"n":"LA","s":0.8},{"x":172.9,"y":453.5,"w":387.8,"h":246.7,"c":2,"n":"LV","s":0.8},{"x":813.0,"y":284.2,"w":199.5,"h":290.1,"c":6,"n":"SP","s":0.602}],"views":[0.2619,0.3263,0.4066]},{"key":"abd_ph_f157","asset":"assets/abdomen.jpg","organ":"Abdomen","plane":"transverse view","pair":"GE model, Philips image","blurb":"A milder cross-vendor shift, where the first pass is already close and the correction is small.","w":766,"h":586,"f":1.5705,"s0":700,"n_gt":5,"r_src":4,"r_tac":4,"f_round1":1.7873,"gt":[{"x":358,"y":389,"w":58,"h":52,"c":1,"n":"S","s":1.0},{"x":338,"y":300,"w":174,"h":164,"c":0,"n":"N","s":1.0},{"x":376,"y":337,"w":46,"h":40,"c":3,"n":"ST","s":1.0},{"x":412,"y":400,"w":85,"h":55,"c":2,"n":"R","s":1.0},{"x":402,"y":388,"w":20,"h":18,"c":6,"n":"AO","s":1.0}],"src":[{"x":336.7,"y":295.1,"w":173.5,"h":168.3,"c":0,"n":"N","s":1.0,"vote":1.8137},{"x":371.6,"y":337.6,"w":48.3,"h":37.5,"c":3,"n":"ST","s":0.998,"vote":1.871},{"x":412.3,"y":395.3,"w":80.6,"h":59.2,"c":2,"n":"R","s":0.997,"vote":1.3311},{"x":356.2,"y":400.1,"w":59.8,"h":36.4,"c":1,"n":"S","s":0.743,"vote":1.8752},{"x":381.2,"y":400.5,"w":28.1,"h":38.3,"c":1,"n":"S","s":0.337,"vote":2.6661}],"tac":[{"x":335.3,"y":299.1,"w":179.7,"h":160.7,"c":0,"n":"N","s":1.0},{"x":375.9,"y":336.3,"w":44.9,"h":39.0,"c":3,"n":"ST","s":0.998},{"x":410.6,"y":391.6,"w":84.7,"h":61.5,"c":2,"n":"R","s":0.981},{"x":357.1,"y":388.7,"w":61.8,"h":57.2,"c":1,"n":"S","s":0.666}],"views":[1.2604,1.5705,1.957]},{"key":"spine_sa_f205","asset":"assets/spine.jpg","organ":"Spine","plane":"sagittal view","pair":"GE model, Samsung image","blurb":"An elongated plane, where the first pass is also close but carries one box that matches nothing.","w":720,"h":576,"f":2.0545,"s0":700,"n_gt":4,"r_src":4,"r_tac":4,"f_round1":1.8943,"gt":[{"x":258,"y":173,"w":224,"h":72,"c":0,"n":"SC","s":1.0},{"x":271,"y":187,"w":209,"h":45,"c":1,"n":"VAOC","s":1.0},{"x":276,"y":202,"w":211,"h":42,"c":4,"n":"VOC","s":1.0},{"x":265,"y":206,"w":36,"h":32,"c":5,"n":"DS","s":1.0}],"src":[{"x":274.4,"y":204.0,"w":209.8,"h":41.9,"c":4,"n":"VOC","s":1.0,"vote":1.9179},{"x":254.5,"y":181.3,"w":229.0,"h":57.8,"c":0,"n":"SC","s":1.0,"vote":2.035},{"x":262.7,"y":200.4,"w":41.6,"h":37.3,"c":5,"n":"DS","s":0.999,"vote":1.7733},{"x":272.0,"y":189.5,"w":210.1,"h":45.8,"c":1,"n":"VAOC","s":0.997,"vote":2.0227},{"x":353.1,"y":190.3,"w":87.5,"h":19.2,"c":2,"n":"MS","s":0.441,"vote":1.8612}],"tac":[{"x":260.3,"y":179.6,"w":222.6,"h":63.7,"c":0,"n":"SC","s":1.0},{"x":263.3,"y":201.2,"w":38.9,"h":35.9,"c":5,"n":"DS","s":1.0},{"x":275.9,"y":205.2,"w":178.6,"h":36.8,"c":4,"n":"VOC","s":0.999},{"x":275.5,"y":191.3,"w":208.1,"h":44.5,"c":1,"n":"VAOC","s":0.921}],"views":[1.6488,2.0545,2.56]}]}</script>
 <script id="ani-data" type="application/json">{"example":{"dataset":"Heart-4CC","source":"center 3","target":"center 2","seed":42,"width":1024,"height":768,"k0":1.04167,"s0":800},"constants":{"MIN_SCORE":0.3,"SIGMA_OBS":0.1,"SIGMA_U":1.0,"RHO_OUT":0.2,"IRLS_ITERS":3,"ADAPT_K":1.732,"H_MIN":0.15,"H_MAX":0.5,"WBF_IOU":0.55,"GAMMA":0.3},"candidates":[{"name":"SP","cls":6,"p":0.9984,"z":5.39318,"mu":4.71725,"sg":0.31352,"box":[739.4,351.5,206.4,215.9]},{"name":"VS","cls":4,"p":0.8734,"z":5.10466,"mu":4.39862,"sg":0.36761,"box":[319.0,534.3,194.0,129.0]},{"name":"RV","cls":3,"p":0.7966,"z":5.41104,"mu":4.59105,"sg":0.38044,"box":[231.0,494.5,254.8,181.2]},{"name":"LV","cls":2,"p":0.7824,"z":5.38979,"mu":4.6121,"sg":0.36702,"box":[248.9,497.9,231.5,191.2]},{"name":"LA","cls":0,"p":0.774,"z":5.37413,"mu":4.35941,"sg":0.38271,"box":[411.3,452.9,238.2,180.1]},{"name":"RV","cls":3,"p":0.6336,"z":5.48409,"mu":4.59105,"sg":0.38044,"box":[403.0,443.9,265.5,201.3]},{"name":"LV","cls":2,"p":0.5964,"z":5.46874,"mu":4.6121,"sg":0.36702,"box":[224.0,264.2,276.8,187.3]},{"name":"LA","cls":0,"p":0.475,"z":5.48317,"mu":4.35941,"sg":0.38271,"box":[138.0,324.3,242.4,220.1]},{"name":"LA","cls":0,"p":0.4193,"z":5.13555,"mu":4.35941,"sg":0.38271,"box":[464.8,329.7,188.9,140.9]}],"trace":[{"u":-0.75412,"f":0.4704,"r":[0.9974,0.8555,0.668,0.6743,0.3468,0.3657,0.3451,0.0595,0.325]},{"u":-0.81744,"f":0.4416,"r":[0.9997,0.9738,0.9529,0.9512,0.934,0.8945,0.8854,0.7473,0.7898]},{"u":-0.81853,"f":0.4411,"r":[0.9997,0.9728,0.9536,0.951,0.9399,0.8989,0.8887,0.7739,0.7891]}],"result":{"u":-0.81853,"f":0.4411,"s":0.12709,"h":0.22012,"views":[0.3539,0.4411,0.5497],"f_deployed":0.3263},"prior":{"LA":{"mu":4.35941,"sg":0.36941,"n":1},"RA":{"mu":4.35025,"sg":0.35896,"n":1},"LV":{"mu":4.6121,"sg":0.35313,"n":1},"RV":{"mu":4.59105,"sg":0.36707,"n":1},"VS":{"mu":4.39862,"sg":0.35374,"n":1},"CRO":{"mu":4.16682,"sg":0.34412,"n":2},"SP":{"mu":4.71725,"sg":0.29715,"n":1},"DAO":{"mu":3.80587,"sg":0.31705,"n":1},"RIB":{"mu":4.9237,"sg":0.32532,"n":2}},"fpn":{"direction":"c1_to_c3","s0":800,"rule":"level = clip(floor(4 + log2(sqrt(area)/224)), 2, 5)","source_train":{"2":0.3175,"3":0.59817,"4":0.08433,"5":0.0},"target_default":{"2":0.69014,"3":0.29884,"4":0.01102,"5":0.0},"target_tac":{"2":0.31353,"3":0.63074,"4":0.05573,"5":0.0},"provenance":"fpn_levels_s42_2026-09-14.json:c1_to_c3"},"results_table":[{"setting":"Heart-4CC / Faster R-CNN","source":46.99,"tac7":55.21,"gain":8.22,"provenance":"numbers_quad.json:heart4cc_frcnn"},{"setting":"Heart-4CC / RetinaNet","source":42.24,"tac7":52.34,"gain":10.1,"provenance":"numbers_quad.json:heart4cc_retinanet"},{"setting":"Abdomen / Faster R-CNN","source":64.25,"tac7":70.02,"gain":5.78,"provenance":"numbers_quad.json:abdomen"},{"setting":"Spine / Faster R-CNN","source":54.68,"tac7":58.38,"gain":3.71,"provenance":"numbers_quad.json:spine"}]}</script>
 <script>
 (function(){
@@ -287,6 +312,248 @@ Scene.prototype.play = function(){
 Scene.prototype.pause = function(){
   this.playing = false; this.bPlay.textContent = 'play'; this.tok++;
 };
+
+/* ================= HERO : the whole method on one frame ================= */
+(function(){
+  var VW = 900, VH = 600;
+  var svg = document.getElementById('hero'), cap = document.getElementById('hcap');
+  var phase = document.getElementById('hphase'), note = document.getElementById('hnote');
+  var bPlay = document.getElementById('hplay'), bRestart = document.getElementById('hrestart');
+
+  // the example with the most first-pass boxes, so that the agreement between their votes is visible
+  var C = CASES[0];
+  for (var i = 0; i < CASES.length; i++){
+    if (CASES[i].src.length > C.src.length) C = CASES[i];
+  }
+  var VOTED = C.src.filter(function(b){ return b.vote; });
+  var VMIN = Math.min.apply(null, VOTED.map(function(b){ return b.vote; }));
+  var VMAX = Math.max.apply(null, VOTED.map(function(b){ return b.vote; }));
+
+  function centre(){
+    var b = C.gt.length ? C.gt : C.src, sx = 0, sy = 0;
+    for (var i = 0; i < b.length; i++){ sx += b[i].x + b[i].w/2; sy += b[i].y + b[i].h/2; }
+    return {x:sx/b.length, y:sy/b.length};
+  }
+  function anatBox(){
+    var b = C.gt.length ? C.gt : C.src, x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9;
+    for (var i = 0; i < b.length; i++){
+      if (b[i].x < x0) x0 = b[i].x;
+      if (b[i].y < y0) y0 = b[i].y;
+      if (b[i].x + b[i].w > x1) x1 = b[i].x + b[i].w;
+      if (b[i].y + b[i].h > y1) y1 = b[i].y + b[i].h;
+    }
+    return {w:Math.max(1, x1 - x0), h:Math.max(1, y1 - y0)};
+  }
+  var A = anatBox();
+  var Z0 = Math.min(0.62*Math.min(VW/(A.w*C.f), VH/(A.h*C.f)),
+                    1.50*Math.min(VW/C.w, VH/C.h));
+  var CEN = centre();
+
+  /* k: how much of the resampling has been applied. boxes / targets / ratios / consensus / tac are
+     opacities. The dashed targets keep the screen size they had before any resampling, so the boxes
+     shrink onto them instead of shrinking with them. */
+  function draw(k, boxes, targets, ratios, consensus, tacAlpha, tag, spot, strip){
+    spot = (spot === undefined) ? -1 : spot;
+    strip = strip || 0;
+    var s = Z0*k, tx = VW/2 - CEN.x*s, ty = VH/2 - CEN.y*s;
+    clear(svg);
+    svg.appendChild(el('rect', {x:0, y:0, width:VW, height:VH, fill:'#000'}));
+    var g = el('g', {transform:'translate(' + tx.toFixed(2) + ',' + ty.toFixed(2) +
+      ') scale(' + s.toFixed(5) + ')'});
+    var im = el('image', {x:0, y:0, width:C.w, height:C.h, preserveAspectRatio:'none'});
+    im.setAttributeNS('http://www.w3.org/1999/xlink', 'href', C.asset);
+    im.setAttribute('href', C.asset);
+    g.appendChild(im);
+    svg.appendChild(g);
+
+    function screenBox(b){ return {x:tx + b.x*s, y:ty + b.y*s, w:b.w*s, h:b.h*s}; }
+    function label(x, y, s2, col, op, size){
+      var e = el('text', {x:x.toFixed(1), y:Math.max(13, y).toFixed(1), fill:col,
+        'font-size':size, 'font-weight':600, opacity:op.toFixed(3),
+        style:'paint-order:stroke;stroke:#000;stroke-width:3px;stroke-linejoin:round'});
+      e.textContent = s2; svg.appendChild(e); return e;
+    }
+
+    if (tacAlpha > 0.01){
+      for (var i = 0; i < C.tac.length; i++){
+        var b = C.tac[i], r = screenBox(b), col = PAL[b.c % PAL.length];
+        svg.appendChild(el('rect', {x:r.x.toFixed(1), y:r.y.toFixed(1),
+          width:Math.max(1, r.w).toFixed(1), height:Math.max(1, r.h).toFixed(1), fill:'none',
+          stroke:col, 'stroke-width':2.4, opacity:tacAlpha.toFixed(3)}));
+        label(r.x + 3, r.y - 5, b.n, col, tacAlpha, 13);
+      }
+    }
+    if (boxes > 0.01){
+      for (var j = 0; j < C.src.length; j++){
+        var b2 = C.src[j], r2 = screenBox(b2), col2 = PAL[b2.c % PAL.length];
+        var op2 = boxes*((spot >= 0 && j !== spot) ? 0.13 : 1);
+        svg.appendChild(el('rect', {x:r2.x.toFixed(1), y:r2.y.toFixed(1),
+          width:Math.max(1, r2.w).toFixed(1), height:Math.max(1, r2.h).toFixed(1), fill:'none',
+          stroke:col2, 'stroke-width':(spot === j ? 3 : 2.2), opacity:op2.toFixed(3)}));
+        if (op2 > 0.55) label(r2.x + 3, r2.y - 5, b2.n, col2, op2, 12.5);
+        var stag = (spot >= 0) ? (j === spot ? 1 : 0)
+                               : Math.max(0, Math.min(1, targets*(C.src.length + 1) - j));
+        var stagR = (spot >= 0) ? (j === spot ? 1 : 0) : 0;
+        if (stag > 0.01 && b2.vote){
+          var cx = r2.x + r2.w/2, cy = r2.y + r2.h/2;
+          var tw = b2.w*Z0*b2.vote, th = b2.h*Z0*b2.vote;
+          svg.appendChild(el('rect', {x:(cx - tw/2).toFixed(1), y:(cy - th/2).toFixed(1),
+            width:tw.toFixed(1), height:th.toFixed(1), fill:'none', stroke:'#ffffff',
+            'stroke-width':1.6, 'stroke-dasharray':'6 4',
+            opacity:(0.85*stag).toFixed(3)}));
+          if (stagR > 0.01){
+            var big2 = (spot === j);
+            var rt = el('text', {x:cx.toFixed(1), y:(cy + th/2 + (big2 ? 26 : 15)).toFixed(1),
+              fill:'#ffd479', 'font-size':big2 ? 20 : 13, 'text-anchor':'middle',
+              'font-weight':big2 ? 600 : 400,
+              'font-family':'ui-monospace,Consolas,monospace', opacity:stagR.toFixed(3),
+              style:'paint-order:stroke;stroke:#000;stroke-width:4px'});
+            rt.textContent = 'x' + b2.vote.toFixed(2); svg.appendChild(rt);
+          }
+        }
+      }
+    }
+    if (strip > 0.01){
+      var vb = C.src.filter(function(b){ return b.vote; });
+      svg.appendChild(el('rect', {x:0, y:VH - 122, width:VW, height:50, fill:'#000',
+        opacity:(0.62*strip).toFixed(3)}));
+      var x0 = 60, wd = (VW - 120)/Math.max(1, vb.length);
+      for (var q = 0; q < vb.length; q++){
+        var sx = x0 + wd*(q + 0.5), vis = Math.max(0, Math.min(1, strip*(vb.length + 1) - q));
+        if (vis <= 0.01) continue;
+        var cq = PAL[vb[q].c % PAL.length];
+        var nq = el('text', {x:sx.toFixed(1), y:VH - 104, fill:cq, 'font-size':12,
+          'text-anchor':'middle', 'font-weight':600, opacity:vis.toFixed(3),
+          style:'paint-order:stroke;stroke:#000;stroke-width:3px'});
+        nq.textContent = vb[q].n; svg.appendChild(nq);
+        var vq = el('text', {x:sx.toFixed(1), y:VH - 84, fill:'#ffd479', 'font-size':16,
+          'text-anchor':'middle', 'font-family':'ui-monospace,Consolas,monospace',
+          opacity:vis.toFixed(3), style:'paint-order:stroke;stroke:#000;stroke-width:3px'});
+        vq.textContent = 'x' + vb[q].vote.toFixed(2); svg.appendChild(vq);
+      }
+    }
+    if (consensus > 0.01){
+      var big = el('text', {x:VW/2, y:66, fill:'#ffd479',
+        'font-size':(26 + 10*consensus).toFixed(1), 'text-anchor':'middle',
+        'font-family':'ui-monospace,Consolas,monospace', 'font-weight':600,
+        opacity:consensus.toFixed(3), style:'paint-order:stroke;stroke:#000;stroke-width:4px'});
+      big.textContent = tag || ('resample x' + k.toFixed(2)); svg.appendChild(big);
+    }
+  }
+
+  var F1 = C.f_round1 || C.f;
+  var SEQ = [
+    {ms:900, ph:'1. look once',
+     cap:'A detector trained at another hospital is applied to this frame, once.',
+     f:function(){ draw(1, 0, 0, 0, 0, 0); }},
+    {ms:600, ph:'1. look once', tween:true,
+     cap:'A detector trained at another hospital is applied to this frame, once.',
+     f:function(p){ draw(1, p, 0, 0, 0, 0); }},
+    {ms:2600, ph:'1. look once', cap:'',
+     f:function(){ draw(1, 1, 0, 0, 0, 0); }}
+  ];
+
+  // one box at a time: what it claims to be, how big it is, how big that structure should be
+  var SPOT = [];
+  for (var q = 0; q < C.src.length && SPOT.length < 4; q++){
+    if (C.src[q].vote) SPOT.push(q);
+  }
+  SPOT.forEach(function(j){
+    var b = C.src[j];
+    SEQ.push({ms:1150, ph:'2. compare',
+      cap:'This box claims to be <b>' + b.n + '</b>. At the source hospital a ' + b.n +
+        ' is usually about <b>x' + b.vote.toFixed(2) + '</b> the size of this box, which is the ' +
+        'dashed outline. So on its own it says: resample by x' + b.vote.toFixed(2) + '.',
+      f:function(){ draw(1, 1, 1, 1, 0, 0, null, j); }});
+  });
+
+  SEQ.push(
+    {ms:2200, ph:'3. agree on a number', cap:'', tween:true,
+     f:function(p){ draw(1, 1, 1, 0, 0, 0, null, -1, p); }},
+    {ms:2800, ph:'3. agree on a number', cap:'',
+     f:function(){ draw(1, 1, 1, 0, 0, 0, null, -1, 1); }},
+    {ms:1000, ph:'3. agree on a number', cap:'', tween:true,
+     f:function(p){ draw(1, 1, 1, 0, p, 0, 'resample x' + F1.toFixed(2), -1, 1 - p); }},
+    {ms:2400, ph:'4. resample', tween:true,
+     cap:'Resample the frame by that factor. The boxes shrink onto the dashed outlines, which is ' +
+       'what it means for the anatomy to be the size this detector expects.',
+     f:function(p){
+       var k = 1 + (F1 - 1)*p;
+       draw(k, 1, 1, 0, 0.6, 0, 'resample x' + k.toFixed(2)); }},
+    {ms:1600, ph:'4. resample', cap:'',
+     f:function(){ draw(F1, 1, 1, 0, 0.6, 0, 'resample x' + F1.toFixed(2)); }},
+    {ms:1600, ph:'4. resample', cap:'', tween:true,
+     f:function(p){
+       var k = F1 + (C.f - F1)*p;
+       draw(k, 1, 1, 0, 0.6, 0, 'resample x' + k.toFixed(2)); }},
+    {ms:1200, ph:'5. look again', tween:true,
+     cap:'Now look again, at the corrected size.',
+     f:function(p){ draw(C.f, 1 - p, 1 - p, 0, 0.6*(1 - p), 0, 'resample x' + C.f.toFixed(2)); }},
+    {ms:900, ph:'5. look again', tween:true,
+     cap:'Now look again, at the corrected size.',
+     f:function(p){ draw(C.f, 0, 0, 0, 0, p); }},
+    {ms:3800, ph:'5. look again', cap:'',
+     f:function(){ draw(C.f, 0, 0, 0, 0, 1); }});
+
+  var B = SPOT.length;
+  SEQ[2].cap = '<b>' + C.src.length + ' boxes</b> come back, and not one of them lands on a ' +
+    'structure. Every structure is in the frame; they are simply the wrong size for this detector.';
+  SEQ[3 + B].cap = 'Do that for every box.';
+  SEQ[4 + B].cap = 'The ' + C.src.filter(function(b){ return b.vote; }).length +
+    ' factors run from <b>x' + VMIN.toFixed(2) + '</b> to <b>x' + VMAX.toFixed(2) +
+    '</b>. They agree, which is what a whole-image size shift looks like, and is why one number ' +
+    'per image is enough.';
+  SEQ[5 + B].cap = 'Weighted by how plausible each claimed size is, the consensus is <b>x' +
+    F1.toFixed(2) + '</b>.';
+  SEQ[7 + B].cap = 'The boxes now sit on the sizes this detector was trained to resolve.';
+  SEQ[8 + B].cap = 'One more pass on the corrected frame re-estimates the factor, and it settles ' +
+    'at <b>x' + C.f.toFixed(2) + '</b>. That is the whole adaptation.';
+  SEQ[11 + B].cap = '<b>' + C.r_tac + ' of the ' + C.n_gt + '</b> structures recovered, against ' +
+    '<b>' + C.r_src + '</b> before. Nothing was trained, the detector was never updated, and no ' +
+    'second image was needed.';
+
+  for (var si = 0; si < SEQ.length; si++){
+    if (typeof SEQ[si].cap !== 'string') throw new Error('hero step ' + si + ' has no caption');
+  }
+  var tok = 0, idx = 0, playing = true;
+  function run(i){
+    if (i >= SEQ.length) i = 0;
+    idx = i;
+    var my = ++tok, st = SEQ[i];
+    phase.textContent = st.ph;
+    cap.innerHTML = st.cap;
+    if (!st.tween){
+      st.f(1);
+      if (playing) setTimeout(function(){ if (my === tok && playing) run(i + 1); }, st.ms);
+      return;
+    }
+    var t0 = null;
+    var frame = function(ts){
+      if (my !== tok) return;
+      if (t0 === null) t0 = ts;
+      var p = Math.min(1, (ts - t0)/st.ms);
+      st.f(ease(p));
+      if (p < 1) requestAnimationFrame(frame);
+      else if (playing) run(i + 1);
+    };
+    requestAnimationFrame(frame);
+  }
+  bPlay.addEventListener('click', function(){
+    playing = !playing;
+    this.textContent = playing ? 'pause' : 'play';
+    if (playing) run(idx); else tok++;
+  });
+  bRestart.addEventListener('click', function(){
+    tok++; playing = true; bPlay.textContent = 'pause'; run(0);
+  });
+  note.innerHTML = 'A real frame from the target test split: ' + C.pair + ', ' + C.w + 'x' + C.h +
+    ' pixels. Every box is one the frozen detector actually produced, every factor is the one the ' +
+    'deployed code computed, and a structure counts as recovered when a box of its class overlaps ' +
+    'the annotation by at least half.';
+  run(0);
+  window.TACHERO = {seq:SEQ, draw:draw, run:run, nsteps:SEQ.length,
+                    pause:function(){ playing = false; tok++; }};
+})();
 
 /* ================= ACT 1 : pyramid levels ================= */
 (function(){
