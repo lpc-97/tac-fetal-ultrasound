@@ -71,8 +71,11 @@ tools/anat_prior.py                   estimation of the source size and layout p
 configs/canon_config_keys.py.in       the SEMISUPNET.CANON keys to add to adapteacher/config.py
 configs/od_r50fpn_retinanet_FZ.yaml   the one-stage detector configuration
 runners/                              evaluation and experiment launchers
-analysis/                             every analysis behind a number in the paper
+analysis/                             every analysis behind a number in the paper, and the two
+                                      provenance audits (run configuration, data leakage)
 paper_figures/                        the table and figure generators
+paper_figures/tables/                 the generated table bodies and the numbers they quote
+paper_figures/out/                    the figures as they appear in the paper (PDF and PNG)
 ```
 
 ## Installation
@@ -108,7 +111,8 @@ directory holding `datasets/`, `output/` and `results/`; it defaults to the curr
    configuration search described in the paper; `runners/run_compose.sh` runs them on the canonicalized
    input.
 5. **Analysis and tables.** The scripts in `analysis/` each write a JSON under `output/analysis/`, and
-   the generators in `paper_figures/` turn those into the table bodies and figures. Point `TAC_ROOT` at
+   the generators in `paper_figures/` turn those into the table bodies and figures; the outputs of the
+   released run are kept in `paper_figures/tables/` and `paper_figures/out/`. Point `TAC_ROOT` at
    the project root first:
 
    ```bash

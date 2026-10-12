@@ -24,11 +24,11 @@ def ap(key):
 
 
 steps = [("source\ndetector", src, None),
-         ("geometric\ncanonicalisation", ap("fusion::TAC canonical view only (no fusion)"), "ANI"),
+         ("geometric\ncanonicalization", ap("fusion::TAC canonical view only (no fusion)"), "ANI"),
          ("cross-view\nfusion", ap("abl_heart::TAC w/o AR"), "SDF"),
          ("structure\nresolution", ap("abl_heart::TAC-light"), "SDF"),
          ("refinement\nround", ap("abl_heart::TAC (2 rounds)"), "SDF"),
-         ("acquired\nbracket", ap("abl_heart::TAC 7 views"), "UVA")]
+         ("acquired\nbracket", ap("main_TAC 7 views (quadrature)"), "UVA")]
 fig, axes = plt.subplots(1, 2, figsize=(6.9, 2.7), gridspec_kw={"width_ratios": [1.45, 1.0], "wspace": 0.5})
 
 # ---------------------------------------------------------------- (a) waterfall
@@ -50,7 +50,7 @@ ax.set_xticks(x); ax.set_xticklabels([s[0] for s in steps], fontsize=5.6)
 ax.set_ylim(44, 61.6); ax.set_ylabel("mean AP (%)")
 ax2 = ax.twinx(); ax2.grid(False)
 ax2.set_ylim((44 - src) / gap * 100, (61.6 - src) / gap * 100)
-ax2.set_ylabel("cross-center loss closed (\\%)", fontsize=6.5); ax2.tick_params(axis="y", labelsize=6)
+ax2.set_ylabel("cross-center loss closed (%)", fontsize=6.5); ax2.tick_params(axis="y", labelsize=6)
 from matplotlib.patches import Patch
 ax.legend(handles=[Patch(facecolor=COL["ANI"], label="ANI"), Patch(facecolor=COL["SDF"], label="SDF"), Patch(facecolor=COL["UVA"], label="UVA")],
           loc="lower right", fontsize=6, handlelength=1.1, frameon=False, ncol=3, columnspacing=0.8)
@@ -58,8 +58,12 @@ panel_label(ax, "(a)", x=-0.15, y=1.06)
 
 # ---------------------------------------------------------------- (b) input correction vs parameter adaptation
 ax = axes[1]
-rows = [("IoU-Filter", 47.44, 51.77), ("AMROD", 47.40, 52.53)]
-ctrl = 51.60
+def cap(key):
+    return N["compose::" + key]["AP"][0]
+
+
+rows = [("IoU-Filter", cap("IoU-Filter"), cap("IoU-Filter + TAC")), ("AMROD", cap("AMROD"), cap("AMROD + TAC"))]
+ctrl = cap("Source + TAC input (1 view, 0 updates)")
 y = np.arange(len(rows)); w = 0.34
 for j, (name, orig, canon) in enumerate(rows):
     ax.barh(y[j] + w / 2, orig - src, w, left=0, color=C["gray"], lw=0)
@@ -73,7 +77,7 @@ ax.set_yticklabels([r[0] for r in rows] + ["canonicalization\n(frozen detector)"
 ax.set_xlabel("AP added by the mechanism", fontsize=7)
 ax.set_xlim(0, 6.2); ax.set_ylim(len(rows) + 0.75, -0.9); ax.invert_yaxis(); ax.invert_yaxis()
 ax.legend(handles=[Patch(facecolor=C["gray"], label="parameter adaptation,\noriginal input"),
-                   Patch(facecolor=BASE, label="parameter adaptation,\ncanonicalised input"),
+                   Patch(facecolor=BASE, label="parameter adaptation,\ncanonicalized input"),
                    Patch(facecolor=OURS, label="input correction alone")],
           loc="upper right", fontsize=5.4, handlelength=1.0, handletextpad=0.4, labelspacing=0.5, frameon=False, borderaxespad=0.2)
 panel_label(ax, "(b)", x=-0.42, y=1.06)

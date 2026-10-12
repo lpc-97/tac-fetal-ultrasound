@@ -30,7 +30,9 @@ closes(R["chain::tac_1v"]["mean"], "tac_factor_single_view")
 closes(R["chain::fac_valscale_1v"]["mean"], "best_fixed_scale_single_view")
 closes(R["chain::fac_global_1v"]["mean"], "stream_level_factor_single_view")
 closes(R["blind::tac"]["mean"], "tac3")
-closes(R["blind::tac_v7"]["mean"], "tac7")
+closes(R["blind::tac_v7"]["mean"], "tac7_fixed_bracket")
+# the configuration reported as TAC-7: the surrogate-guided quadrature bracket
+closes(N["main_TAC 7 views (quadrature)"]["mean"], "tac7")
 # best evaluated parameter-adaptive baseline on the frozen-BN heart models
 best_pa = max((v["selected"], m) for m, v in ((m, R[f"default::{m}"]) for m in ("iouf", "amrod", "whw", "cdb", "sgp", "osfda", "vlod", "buftta")))
 out["best_parameter_adaptive_baseline"] = {"method": best_pa[1], **closes(best_pa[0], "_tmp")}

@@ -20,9 +20,15 @@ def fmt(m, s=None, bold=False, prec=2):
     return f"\\textbf{{{t}}}" if bold else t
 
 
+def argbest(vals):
+    """indices holding the largest value (ties included); None entries are skipped"""
+    m = max(v for v in vals if v is not None)
+    return {i for i, v in enumerate(vals) if v is not None and abs(v - m) < 1e-9}
+
+
 def delta(a, b):
     mu, half, sig = paired(a, b)
-    return f"{mu:+.2f}\\,$\\pm$\\,{half:.2f}{'$^{*}$' if sig else ''}"
+    return f"${mu:+.2f}$\\,$\\pm$\\,{half:.2f}{'$^{*}$' if sig else ''}"
 
 
 def write(name, text):
@@ -46,6 +52,16 @@ write("tab_datasets.tex", "\n".join(L) + "\n")
 NUM["dataset_median_size"] = {f"{k}_{d}": S[k][f"{d}_train"]["all_median"] for k, ds in [("4c", ["c1", "c2", "c3"]), ("abdomen", ["GE", "PH", "SA"]), ("spine", ["GE", "PH", "SA"])] for d in ds}
 
 # ------------------------------------------------------------------ Table: main Heart-4CC Faster R-CNN
+# The full seven-view model is the surrogate-guided (quadrature) bracket of the methodology. Those runs
+# were collected later; where they are present they are reported as TAC-7, and the fixed bracket
+# becomes the control row of the view-count ablation.
+QUAD7 = "TAC 7 views (quadrature)"
+
+
+def k7(tbl, fixed_key):
+    """key of the seven-view row to report: the quadrature run if collected, else the fixed bracket"""
+    return QUAD7 if QUAD7 in tbl else fixed_key
+
 R = rows("heart4cc_frcnn"); B = rows("heart4cc_bn_models"); F = rows("heart4cc_fusion_views")
 src = R["Source-only (FrozenBN)"]
 MAIN = [  # (row name in QC, label, views/updates, group)
@@ -62,18 +78,21 @@ MAIN = [  # (row name in QC, label, views/updates, group)
     ("18-view WBF", "18-view WBF~\\cite{solovyev2021wbf}", "18", "multi"),
     ("18-view WBF + AR", "18-view WBF + re-scoring", "18", "multi"),
     ("CoTTA-det", "CoTTA-det~\\cite{wang2022cotta}", "18 + train", "multi"),
-    ("TAC-light", "\\textbf{TAC-3} (ours)", "3", "ours"),
-    ("TAC (2 rounds)", "\\textbf{TAC-3, 2 rounds} (ours)", "3.3", "ours"),
-    ("TAC 7 views", "\\textbf{TAC-7} (ours)", "7", "ours"),
+    ("TAC-light", "TAC-3 (ours)", "3", "ours"),
+    ("TAC (2 rounds)", "TAC-3, 2 rounds (ours)", "3.3", "ours"),
+    (k7(R, "TAC 7 views"), "TAC-7 (ours)", "7", "ours"),
 ]
-best = max(r["mean"] for r in R.values())
+_rows = [R[k] for k, _, _, _ in MAIN]
+_bdir = [argbest([r["dirs"][j] for r in _rows]) for j in range(6)]
+_bmean, _b50 = argbest([r["mean"] for r in _rows]), argbest([r["ap50"] for r in _rows])
 L = []
-for key, lab, views, grp in MAIN:
+for i, (key, lab, views, grp) in enumerate(MAIN):
     r = R[key]
-    cells = " & ".join(f"{d:.1f}" for d in r["dirs"])
+    cells = " & ".join((f"\\textbf{{{d:.1f}}}" if i in _bdir[j] else f"{d:.1f}") for j, d in enumerate(r["dirs"]))
     d = "--" if grp == "src" else delta(r, src)
     spi = "" if r["spi"] is None else f"{r['spi']:.2f}"
-    L.append(f"{lab} & {views} & {cells} & {fmt(r['mean'], r['std'], bold=(grp == 'ours'))} & {r['ap50']:.2f} & {d} \\\\")
+    ap50 = f"\\textbf{{{r['ap50']:.2f}}}" if i in _b50 else f"{r['ap50']:.2f}"
+    L.append(f"{lab} & {views} & {cells} & {fmt(r['mean'], r['std'], bold=(i in _bmean))} & {ap50} & {d} \\\\")
     NUM[f"main_{key}"] = {"mean": r["mean"], "std": r["std"], "ap50": r["ap50"], "dirs": r["dirs"], "views": r["views"], "spi": r["spi"], "d_src": list(paired(r, src)), "d50_src": [st.mean(r["m50"][s] - src["m50"][s] for s in r["m50"])]}
     if grp == "src":
         L.append("\\midrule")
@@ -83,9 +102,15 @@ for key, lab, views, grp in MAIN:
 L.append("\\midrule")
 L.append("\\multicolumn{11}{l}{\\textit{Source models with trainable BatchNorm (required by BN-statistics methods)}}\\\\")
 bsrc = B["Source-only (BN)"]
-for key, lab in [("Source-only (BN)", "Source model (BN)"), ("Tent", "Tent~\\cite{wang2021tent}"), ("DomainAdaptor", "DomainAdaptor~\\cite{zhang2023domainadaptor}"), ("VPTTA", "VPTTA~\\cite{chen2024vptta}"), ("GraTa", "GraTa~\\cite{chen2025grata}")]:
-    r = B[key]; cells = " & ".join(f"{d:.1f}" for d in r["dirs"]); d = "--" if key.startswith("Source") else delta(r, bsrc)
-    L.append(f"{lab} & 1{'' if key.startswith('Source') else ' + train'} & {cells} & {fmt(r['mean'], r['std'])} & {r['ap50']:.2f} & {d} \\\\")
+_BN = [("Source-only (BN)", "Source model (BN)"), ("Tent", "Tent~\\cite{wang2021tent}"), ("DomainAdaptor", "DomainAdaptor~\\cite{zhang2023domainadaptor}"), ("VPTTA", "VPTTA~\\cite{chen2024vptta}"), ("GraTa", "GraTa~\\cite{chen2025grata}")]
+_brows = [B[k] for k, _ in _BN]
+_bdir = [argbest([r["dirs"][j] for r in _brows]) for j in range(6)]
+_bmean, _b50 = argbest([r["mean"] for r in _brows]), argbest([r["ap50"] for r in _brows])
+for i, (key, lab) in enumerate(_BN):
+    r = B[key]; d = "--" if key.startswith("Source") else delta(r, bsrc)
+    cells = " & ".join((f"\\textbf{{{v:.1f}}}" if i in _bdir[j] else f"{v:.1f}") for j, v in enumerate(r["dirs"]))
+    ap50 = f"\\textbf{{{r['ap50']:.2f}}}" if i in _b50 else f"{r['ap50']:.2f}"
+    L.append(f"{lab} & 1{'' if key.startswith('Source') else ' + train'} & {cells} & {fmt(r['mean'], r['std'], bold=(i in _bmean))} & {ap50} & {d} \\\\")
     NUM[f"bn_{key}"] = {"mean": r["mean"], "std": r["std"], "ap50": r["ap50"]}
 write("tab_main_heart.tex", "\n".join(L) + "\n")
 
@@ -111,19 +136,25 @@ OTH = [
     ("18-view WBF~\\cite{solovyev2021wbf}", "18", "18-view WBF", "18-view WBF", "18-view WBF"),
     ("18-view WBF + re-scoring", "18", "18-view WBF + AR", "18-view WBF + AR", "18-view WBF + AR"),
     ("CoTTA-det~\\cite{wang2022cotta}", "18 + train", "CoTTA-det", "CoTTA-det", "CoTTA-det"),
-    ("\\textbf{TAC-3} (ours)", "3", "TAC-light", "TAC-light", "TAC-light"),
-    ("\\textbf{TAC-3, 2 rounds} (ours)", "3--3.4", "TAC (2 rounds)", "TAC (2 rounds)", "TAC (2 rounds)"),
-    ("\\textbf{TAC-7} (ours)", "7", "TAC 7 views", "TAC 7 views", "TAC 7 views"),
+    ("TAC-3 (ours)", "3", "TAC-light", "TAC-light", "TAC-light"),
+    ("TAC-3, 2 rounds (ours)", "3--3.4", "TAC (2 rounds)", "TAC (2 rounds)", "TAC (2 rounds)"),
+    ("TAC-7 (ours)", "7", k7(RT, "TAC 7 views"), k7(AB, "TAC 7 views"), k7(SP, "TAC 7 views")),
 ]
 L = []
 srcs = (RT["RetinaNet source-only"], AB["Source-only (FrozenBN)"], SP["Source-only (FrozenBN)"])
-for lab, views, krt, kab, ksp in OTH:
+_best = []
+for T, col in zip((RT, AB, SP), (2, 3, 4)):
+    _vals = [(T[row[col]]["mean"] if row[col] in T else None) for row in OTH]
+    _v50 = [(T[row[col]]["ap50"] if row[col] in T else None) for row in OTH]
+    _best.append((argbest(_vals), argbest(_v50)))
+for i, (lab, views, krt, kab, ksp) in enumerate(OTH):
     cells = []
-    for T, k, s in zip((RT, AB, SP), (krt, kab, ksp), srcs):
+    for bi, (T, k, s) in enumerate(zip((RT, AB, SP), (krt, kab, ksp), srcs)):
         if k is None or k not in T:
             cells.append("\multicolumn{3}{c}{n/a}"); continue
-        r = T[k]; ours = "ours" in lab
-        cells.append(f"{fmt(r['mean'], r['std'], bold=ours)} & {r['ap50']:.2f} & {'--' if r is s else delta(r, s)}")
+        r = T[k]
+        ap50 = f"\\textbf{{{r['ap50']:.2f}}}" if i in _best[bi][1] else f"{r['ap50']:.2f}"
+        cells.append(f"{fmt(r['mean'], r['std'], bold=(i in _best[bi][0]))} & {ap50} & {'--' if r is s else delta(r, s)}")
         NUM[f"{'rt' if T is RT else 'abdomen' if T is AB else 'spine'}_{k}"] = {"mean": r["mean"], "std": r["std"], "ap50": r["ap50"], "dirs": r["dirs"], "views": r["views"], "spi": r["spi"], "d_src": list(paired(r, s))}
     L.append(f"{lab} & {views} & " + " & ".join(cells) + " \\\\")
     if lab.startswith("Source") or "BufferTTA" in lab or "CoTTA" in lab:
@@ -149,30 +180,38 @@ for k in singles:
 for name, T, hdr in [("rt", RT, ["c1$\\to$c2", "c1$\\to$c3", "c2$\\to$c1", "c2$\\to$c3", "c3$\\to$c1", "c3$\\to$c2"]), ("abdomen", AB, ["GE$\\to$PH", "GE$\\to$SA", "PH$\\to$GE", "PH$\\to$SA", "SA$\\to$GE", "SA$\\to$PH"]), ("spine", SP, ["GE$\\to$PH", "GE$\\to$SA", "PH$\\to$GE", "PH$\\to$SA", "SA$\\to$GE", "SA$\\to$PH"])]:
     L = ["\\midrule".join([]) ]
     L = []
-    for lab, views, krt, kab, ksp in OTH:
-        k = {"rt": krt, "abdomen": kab, "spine": ksp}[name]
-        if k is None or k not in T:
-            continue
-        r = T[k]; cells = " & ".join(f"{d:.1f}" for d in r["dirs"])
-        L.append(f"{lab} & {views} & {cells} & {fmt(r['mean'], r['std'], bold='ours' in lab)} & {r['ap50']:.2f} \\\\")
+    _present = [(lab, views, {"rt": krt, "abdomen": kab, "spine": ksp}[name]) for lab, views, krt, kab, ksp in OTH]
+    _present = [(lab, views, k) for lab, views, k in _present if k is not None and k in T]
+    _prow = [T[k] for _, _, k in _present]
+    _bdir = [argbest([r["dirs"][j] for r in _prow]) for j in range(6)]
+    _bmean, _b50 = argbest([r["mean"] for r in _prow]), argbest([r["ap50"] for r in _prow])
+    for i, (lab, views, k) in enumerate(_present):
+        r = T[k]
+        cells = " & ".join((f"\\textbf{{{d:.1f}}}" if i in _bdir[j] else f"{d:.1f}") for j, d in enumerate(r["dirs"]))
+        ap50 = f"\\textbf{{{r['ap50']:.2f}}}" if i in _b50 else f"{r['ap50']:.2f}"
+        L.append(f"{lab} & {views} & {cells} & {fmt(r['mean'], r['std'], bold=(i in _bmean))} & {ap50} \\\\")
     write(f"tab_dirs_{name}.tex", "\n".join(L) + "\n")
     NUM[f"dirhdr_{name}"] = hdr
 
 # ------------------------------------------------------------------ Table: component ablation on test (4 settings)
 ABL = [("TAC-light", "TAC-3 (full)"), ("TAC w/o AR", "\\quad w/o structure-aware re-scoring"), ("TAC w/o s0 calib", "\\quad w/o calibrated $s_0$ (default 800)"), ("TAC (2 rounds)", "\\quad + second round"), ("TAC 7 views", "TAC-7 (+4 views at $\\pm$15\\%)")]
 L = []
-for key, lab in ABL:
+_abest = []
+for T in (R, RT, AB, SP):
+    _abest.append(argbest([(T[key]["mean"] if key in T else None) for key, _ in ABL] +
+                          [F["TAC 7 views w/o AR"]["mean"] if T is R else None]))
+for i, (key, lab) in enumerate(ABL):
     cells = []
-    for T in (R, RT, AB, SP):
+    for bi, T in enumerate((R, RT, AB, SP)):
         if key in T:
             r = T[key]; ref = T["TAC-light"]
-            cells.append(f"{fmt(r['mean'], r['std'])} & {'--' if key == 'TAC-light' else delta(r, ref)}")
+            cells.append(f"{fmt(r['mean'], r['std'], bold=(i in _abest[bi]))} & {'--' if key == 'TAC-light' else delta(r, ref)}")
         else:
             cells.append("\multicolumn{2}{c}{n/a}")
     L.append(f"{lab} & " + " & ".join(cells) + " \\\\")
 r = F["TAC 7 views w/o AR"]; ref = F["TAC 7 views (+-15% scales)"]
 NA2 = "\\multicolumn{2}{c}{n/a}"
-L.append(f"\\quad TAC-7 w/o structure-aware re-scoring & {fmt(r['mean'], r['std'])} & {delta(r, ref)} & {NA2} & {NA2} & {NA2} \\\\")
+L.append(f"\\quad TAC-7 w/o structure-aware re-scoring & {fmt(r['mean'], r['std'], bold=(len(ABL) in _abest[0]))} & {delta(r, ref)} & {NA2} & {NA2} & {NA2} \\\\")
 NUM["tac7_noar_heart"] = [r["mean"], r["std"], *paired(r, ref)]
 write("tab_ablation.tex", "\n".join(L) + "\n")
 for T, name in [(R, "heart"), (RT, "rt"), (AB, "abdomen"), (SP, "spine")]:
@@ -186,7 +225,7 @@ for key, lab in [("TAC canonical view only (no fusion)", "canonical view only (n
     r = F[key]; L.append(f"{lab} & 3 & {fmt(r['mean'], r['std'])} & {r['ap50']:.2f} & {'--' if 'WBF' in key else delta(r, F['TAC (WBF, 3 views)'])} \\\\")
     NUM[f"fusion::{key}"] = [r["mean"], r["std"], *paired(r, F["TAC (WBF, 3 views)"])]
 L.append("\\midrule")
-for key, lab in [("TAC 2 views (no flip)", "pass 1 + canonical view (no flip)"), ("TAC (WBF, 3 views)", "TAC-3"), ("TAC 7 views (+-15% scales)", "TAC-7"), ("TAC 11 views (+-10/20/25% scales)", "TAC-11 ($\\pm$10/20/25\\%)"), ("18-view WBF + AR", "18-view WBF + re-scoring"), ("18-view heatmap (senior)", "18-view heat-map fusion")]:
+for key, lab in [("TAC 2 views (no flip)", "pass 1 + canonical view (no flip)"), ("TAC (WBF, 3 views)", "TAC-3"), ("TAC 7 views (+-15% scales)", "\\quad fixed bracket $\\pm15\\%$ (control)"), ("TAC 11 views (+-10/20/25% scales)", "TAC-11 ($\\pm$10/20/25\\%)"), ("18-view WBF + AR", "18-view WBF + re-scoring"), ("18-view heatmap (senior)", "18-view heat-map fusion")]:
     r = F[key]; v = r["views"] if r["views"] else 18
     L.append(f"{lab} & {v:.0f} & {fmt(r['mean'], r['std'])} & {r['ap50']:.2f} & {'--' if key == 'TAC (WBF, 3 views)' else delta(r, F['TAC (WBF, 3 views)'])} \\\\")
     NUM[f"views::{key}"] = [r["mean"], r["std"], r["ap50"], *paired(r, F["TAC (WBF, 3 views)"])]
@@ -196,7 +235,7 @@ V = val_variants("4c", "canon")
 VAL_ABL = [("tac", "TAC-3 (default)"), ("tac_nopass1", "\\quad w/o pass-1 view in the fusion"), ("tac_flip0", "\\quad + flipped pass-1 view"), ("tac_aspect", "\\quad + aspect-ratio factor $v$"),
            ("tac_shrink03", "\\quad strong shrinkage ($\\sigma_u=0.3$)"), ("tac_nooutlier", "\\quad w/o outlier component ($r_i=1$)"),
            ("tac_noar", "\\quad w/o structure-aware re-scoring"), ("tac_nocalib", "\\quad w/o calibrated $s_0$"), ("tac_rounds2", "\\quad + second round"), ("tac_full", "\\quad + second round + aspect factor")]
-L = [f"{lab} & {V[k]:.2f} & {V[k] - V['tac']:+.2f} \\\\" for k, lab in VAL_ABL if k in V]
+L = [f"{lab} & {V[k]:.2f} & ${V[k] - V['tac']:+.2f}$ \\\\" for k, lab in VAL_ABL if k in V]
 write("tab_val_ablation.tex", "\n".join(L) + "\n")
 NUM["val_ablation"] = {k: V[k] for k, _ in VAL_ABL if k in V}
 NUM["val_hp"] = {k: v for k, v in V.items() if k.startswith("hp_")}
@@ -211,7 +250,7 @@ for key, lab in [("Source-only (1 view @800)", "Source model"), ("Source + TAC i
     a = CP["AP"][key]; b = CP["AP50"][key]
     ma, sa = st.mean(a["per_seed_mean6"].values()), st.pstdev(a["per_seed_mean6"].values()); mb, sb = st.mean(b["per_seed_mean6"].values()), st.pstdev(b["per_seed_mean6"].values())
     def dl(x):
-        return "--" if not x else f"{x[0]:+.2f}$\\pm${x[1]:.2f}{'$^{*}$' if x[2] else ''}"
+        return "--" if not x else f"${x[0]:+.2f}$\\,$\\pm$\\,{x[1]:.2f}{'$^{*}$' if x[2] else ''}"
     L.append(f"{lab} & {ma:.2f}$\\pm${sa:.2f} & {mb:.2f} & {dl(a.get('delta_vs_base'))} & {dl(a.get('delta_vs_ctrl'))} \\\\")
     NUM[f"compose::{key}"] = {"AP": [ma, sa], "AP50": [mb, sb], "d_base": a.get("delta_vs_base"), "d_ctrl": a.get("delta_vs_ctrl"), "d_tac2": a.get("delta_vs_tac2"), "d50_base": b.get("delta_vs_base")}
 write("tab_compose.tex", "\n".join(L) + "\n")
