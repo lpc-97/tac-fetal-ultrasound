@@ -156,7 +156,7 @@ ax3.text(f1, -ytop * 0.05, f"MAP $f^*$ = {f1:.2f} (3 IRLS steps)\n2nd round: $f$
 ax3.axhline(0, color=INK2, lw=0.4, alpha=0.5)
 for s in ("top", "right"):
     ax3.spines[s].set_visible(False)
-fig.text(0.4025, 0.04, "$r_i \\propto p_i\\,\\mathcal{N}(z_i+u;\\mu_{c_i},\\tilde\\sigma_i^2)$ vs. $(1-p_i)\\rho_{\\mathrm{out}}$;   "
+fig.text(0.4025, 0.04, "$r_i \\propto \\pi_i\\,\\mathcal{N}(z_i+u;\\mu_{c_i},\\tilde\\sigma_i^2)$ vs. $(1-\\pi_i)\\rho_{\\mathrm{out}}$,  $\\pi_i=g(p_i)$;   "
          "$u^{*}=\\frac{\\sum_i r_i(\\mu_{c_i}-z_i)/\\tilde\\sigma_i^{2}}{\\sum_i r_i/\\tilde\\sigma_i^{2}+1/\\sigma_u^{2}}$", fontsize=6.0, color=INK, ha="center", va="bottom")
 
 # ================================================================ stage 3: canonicalized views (drawn at f times the pass-1 size)
@@ -171,10 +171,10 @@ fig.text(X3 + small / 2, yl, "$\\times f^*$", fontsize=6, color=INK, ha="center"
 fig.text(X3 + small * 1.5 + gap, yl, "$\\times f^*$, flipped", fontsize=6, color=INK, ha="center", va="top")
 fig.text(X3 + small + gap / 2, yl - 0.05, "structures return to the prior\nsize (LV = ruler)", fontsize=5.4, color=INK2, ha="center", va="top", style="italic", linespacing=1.3)
 sw = small * 0.72; y7 = yl - 0.13 - sw * RATIO * ASP
-for i, lab in enumerate(["0.85$f^*$", "1.15$f^*$"]):
+for i, lab in enumerate(["$f^*e^{-h}$", "$f^*e^{+h}$"]):
     image_axes(X3 + i * (sw + gap), y7, sw, frame=C["sky"], lw=0.7)
     fig.text(X3 + i * (sw + gap) + sw / 2, y7 - 0.012, lab + " (+flip)", fontsize=5.2, color=INK2, ha="center", va="top")
-fig.text(X3 + small + gap / 2, y7 - 0.06, "TAC-3: pass 1 + 2 views\nTAC-7: + 4 views at $\\pm$15%", fontsize=5.8, color=INK, ha="center", va="top", linespacing=1.3)
+fig.text(X3 + small + gap / 2, y7 - 0.06, "TAC-3: pass 1 + 2 views\nTAC-7: + 4 views at $f^*e^{\\pm h}$,\n$h=\\mathrm{clip}(\\sqrt{3}s, h_{\\min}, h_{\\max})$", fontsize=5.8, color=INK, ha="center", va="top", linespacing=1.3)
 fig.text(X3 + small + gap / 2, y7 - 0.145, "frozen detector on every view", fontsize=5.6, color=INK2, ha="center", va="top", style="italic")
 
 # ================================================================ stage 4: fusion and re-scoring

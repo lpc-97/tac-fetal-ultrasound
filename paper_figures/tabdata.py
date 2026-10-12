@@ -6,6 +6,14 @@ import statistics as st
 from pubstyle import load
 
 QC = load("qc_collect_2026-09-18.json")
+# the surrogate-guided (quadrature) bracket runs were collected later, in the same cell shape, and are
+# merged here so that they pass through exactly the same row statistics as every other method
+try:
+    _EXTRA = load("qc_collect_uva_full.json")
+    for _tbl, _methods in _EXTRA.get("tables", {}).items():
+        QC["tables"].setdefault(_tbl, {}).update(_methods)
+except FileNotFoundError:
+    pass
 T975 = 4.303  # two-sided 97.5% t quantile, 2 dof (3 seeds)
 
 

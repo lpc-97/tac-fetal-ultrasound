@@ -1,0 +1,226 @@
+{
+ "heart4cc_frcnn": {
+  "mean": 55.2124717712597,
+  "std": 0.1506029893704782,
+  "ap50": 89.97751092765517,
+  "views": 7.0,
+  "vs": {
+   "source": {
+    "delta": 8.22,
+    "ci95_half": 0.36,
+    "significant": true,
+    "other_mean": 46.99
+   },
+   "heatmap18": {
+    "delta": 3.68,
+    "ci95_half": 0.15,
+    "significant": true,
+    "other_mean": 51.53
+   },
+   "wbf18": {
+    "delta": 2.0,
+    "ci95_half": 0.04,
+    "significant": true,
+    "other_mean": 53.21
+   },
+   "wbf18_ar": {
+    "delta": 1.58,
+    "ci95_half": 0.04,
+    "significant": true,
+    "other_mean": 53.63
+   },
+   "cotta": {
+    "delta": 2.33,
+    "ci95_half": 0.26,
+    "significant": true,
+    "other_mean": 52.88
+   },
+   "tac3": {
+    "delta": 1.45,
+    "ci95_half": 0.3,
+    "significant": true,
+    "other_mean": 53.76
+   },
+   "tac3_2r": {
+    "delta": 1.03,
+    "ci95_half": 0.3,
+    "significant": true,
+    "other_mean": 54.18
+   },
+   "tac7_fixed": {
+    "delta": 0.22,
+    "ci95_half": 0.2,
+    "significant": true,
+    "other_mean": 54.99
+   }
+  }
+ },
+ "heart4cc_retinanet": {
+  "mean": 52.340909911110934,
+  "std": 0.026372356787997358,
+  "ap50": 87.77949524939294,
+  "views": 7.0,
+  "vs": {
+   "source_rt": {
+    "delta": 10.1,
+    "ci95_half": 0.21,
+    "significant": true,
+    "other_mean": 42.24
+   },
+   "heatmap18": {
+    "delta": 7.95,
+    "ci95_half": 0.47,
+    "significant": true,
+    "other_mean": 44.39
+   },
+   "wbf18": {
+    "delta": 4.03,
+    "ci95_half": 0.24,
+    "significant": true,
+    "other_mean": 48.31
+   },
+   "wbf18_ar": {
+    "delta": 3.24,
+    "ci95_half": 0.14,
+    "significant": true,
+    "other_mean": 49.1
+   },
+   "cotta": {
+    "delta": 4.28,
+    "ci95_half": 0.15,
+    "significant": true,
+    "other_mean": 48.06
+   },
+   "tac3": {
+    "delta": 2.25,
+    "ci95_half": 0.22,
+    "significant": true,
+    "other_mean": 50.09
+   },
+   "tac3_2r": {
+    "delta": 1.4,
+    "ci95_half": 0.25,
+    "significant": true,
+    "other_mean": 50.94
+   },
+   "tac7_fixed": {
+    "delta": 0.25,
+    "ci95_half": 0.24,
+    "significant": true,
+    "other_mean": 52.09
+   }
+  }
+ },
+ "abdomen": {
+  "mean": 70.02408442645915,
+  "std": 0.3412095181967114,
+  "ap50": 90.75429764761354,
+  "views": 7.0,
+  "vs": {
+   "source": {
+    "delta": 5.78,
+    "ci95_half": 0.74,
+    "significant": true,
+    "other_mean": 64.25
+   },
+   "heatmap18": {
+    "delta": 1.36,
+    "ci95_half": 0.52,
+    "significant": true,
+    "other_mean": 68.66
+   },
+   "wbf18": {
+    "delta": 0.78,
+    "ci95_half": 0.45,
+    "significant": true,
+    "other_mean": 69.25
+   },
+   "wbf18_ar": {
+    "delta": 0.68,
+    "ci95_half": 0.42,
+    "significant": true,
+    "other_mean": 69.35
+   },
+   "cotta": {
+    "delta": 0.51,
+    "ci95_half": 0.67,
+    "significant": false,
+    "other_mean": 69.51
+   },
+   "tac3": {
+    "delta": 1.08,
+    "ci95_half": 0.26,
+    "significant": true,
+    "other_mean": 68.94
+   },
+   "tac3_2r": {
+    "delta": 1.07,
+    "ci95_half": 0.25,
+    "significant": true,
+    "other_mean": 68.96
+   },
+   "tac7_fixed": {
+    "delta": 0.04,
+    "ci95_half": 0.09,
+    "significant": false,
+    "other_mean": 69.98
+   }
+  }
+ },
+ "spine": {
+  "mean": 58.38415171663122,
+  "std": 0.2504635959021761,
+  "ap50": 92.26878284761034,
+  "views": 7.0,
+  "vs": {
+   "source": {
+    "delta": 3.71,
+    "ci95_half": 0.73,
+    "significant": true,
+    "other_mean": 54.68
+   },
+   "heatmap18": {
+    "delta": 2.08,
+    "ci95_half": 0.48,
+    "significant": true,
+    "other_mean": 56.31
+   },
+   "wbf18": {
+    "delta": 1.06,
+    "ci95_half": 0.57,
+    "significant": true,
+    "other_mean": 57.32
+   },
+   "wbf18_ar": {
+    "delta": 1.02,
+    "ci95_half": 0.56,
+    "significant": true,
+    "other_mean": 57.36
+   },
+   "cotta": {
+    "delta": 0.97,
+    "ci95_half": 0.41,
+    "significant": true,
+    "other_mean": 57.42
+   },
+   "tac3": {
+    "delta": 0.85,
+    "ci95_half": 0.17,
+    "significant": true,
+    "other_mean": 57.54
+   },
+   "tac3_2r": {
+    "delta": 0.84,
+    "ci95_half": 0.16,
+    "significant": true,
+    "other_mean": 57.54
+   },
+   "tac7_fixed": {
+    "delta": 0.18,
+    "ci95_half": 0.19,
+    "significant": false,
+    "other_mean": 58.2
+   }
+  }
+ }
+}

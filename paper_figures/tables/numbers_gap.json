@@ -1,0 +1,102 @@
+{
+ "source_cross_domain": 46.99,
+ "source_in_domain": 60.52,
+ "cross_centre_loss": 13.53,
+ "oracle_scale_single_view": {
+  "AP": 52.16,
+  "delta": 5.17,
+  "pct_of_loss": 38.2
+ },
+ "oracle_scale_tac3_pipeline": {
+  "AP": 54.51,
+  "delta": 7.52,
+  "pct_of_loss": 55.6
+ },
+ "tac_factor_single_view": {
+  "AP": 51.56,
+  "delta": 4.57,
+  "pct_of_loss": 33.8
+ },
+ "best_fixed_scale_single_view": {
+  "AP": 49.67,
+  "delta": 2.68,
+  "pct_of_loss": 19.8
+ },
+ "stream_level_factor_single_view": {
+  "AP": 49.49,
+  "delta": 2.5,
+  "pct_of_loss": 18.5
+ },
+ "tac3": {
+  "AP": 53.76,
+  "delta": 6.77,
+  "pct_of_loss": 50.1
+ },
+ "tac7_fixed_bracket": {
+  "AP": 54.99,
+  "delta": 8.0,
+  "pct_of_loss": 59.1
+ },
+ "tac7": {
+  "AP": 55.21,
+  "delta": 8.22,
+  "pct_of_loss": 60.8
+ },
+ "best_parameter_adaptive_baseline": {
+  "method": "osfda",
+  "AP": 47.68,
+  "delta": 0.69,
+  "pct_of_loss": 5.1
+ },
+ "tac_over_oracle_single_view": 88.4,
+ "tac_over_oracle_tac3_pipeline": 90.1,
+ "passes_saved_vs_18view_pct": 61.1,
+ "per_structure_gains": {
+  "4c": {
+   "n_structures": 9,
+   "min_gain": 5.25,
+   "n_negative": 0,
+   "gains": {
+    "LA": 7.54,
+    "RA": 6.81,
+    "LV": 8.24,
+    "RV": 7.89,
+    "VS": 7.69,
+    "CRO": 7.2,
+    "SP": 5.81,
+    "DAO": 8.29,
+    "RIB": 5.25
+   }
+  },
+  "abdomen": {
+   "n_structures": 8,
+   "min_gain": 2.14,
+   "n_negative": 0,
+   "gains": {
+    "N": 2.14,
+    "S": 3.17,
+    "R": 5.25,
+    "ST": 2.56,
+    "U": 4.62,
+    "P": 7.85,
+    "AO": 6.35,
+    "L": 5.72
+   }
+  },
+  "spine": {
+   "n_structures": 6,
+   "min_gain": 1.26,
+   "n_negative": 0,
+   "gains": {
+    "SC": 1.26,
+    "VAOC": 2.05,
+    "MS": 3.9,
+    "MC": 4.46,
+    "VOC": 3.21,
+    "DS": 2.29
+   }
+  }
+ },
+ "n_structures_total": 23,
+ "n_structures_negative": 0
+}

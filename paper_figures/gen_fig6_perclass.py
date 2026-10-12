@@ -24,7 +24,7 @@ for ax, (dsn, title) in zip(axes, SETS):
     for i, k in enumerate(names):
         ax.text(x[i], -0.9, f"{src_ap[i]:.0f}", ha="center", va="top", fontsize=5.5, color=C["ink2"])
     ax.set_ylim(-2.4, 12.5)
-    ax.set_xlabel("structure (grey: source AP)", fontsize=6.5, labelpad=2)
+    ax.set_xlabel("structure (gray: source AP)", fontsize=6.5, labelpad=2)
 axes[0].set_ylabel("Δ AP vs. source (%)")
 axes[0].legend(loc="upper left", fontsize=6.2, handlelength=1.0, ncol=1)
 for i, ax in enumerate(axes):

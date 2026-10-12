@@ -21,6 +21,11 @@ R = json.load(open(os.path.join(RES, "reviewer_summary.json"), encoding="utf-8")
 FP = json.load(open(os.path.join(RES, "firstpass_analysis.json"), encoding="utf-8"))
 BOOT = {d: json.load(open(os.path.join(RES, f"cluster_bootstrap_{d}.json"), encoding="utf-8")) for d in ("4c", "abdomen", "spine")}
 TIM = json.load(open(os.path.join(RES, "timing.json"), encoding="utf-8")) if os.path.exists(os.path.join(RES, "timing.json")) else {}
+# the uncertainty-aware runs live in their own collection; the quadrature configuration is the one
+# reported as TAC-7, so it is merged into the main row dict for every table that references it
+UV = json.load(open(os.path.join(RES, "uncert_summary.json"), encoding="utf-8"))["test"] if os.path.exists(os.path.join(RES, "uncert_summary.json")) else {}
+for _k, _v in UV.items():
+    R.setdefault(_k, _v)
 NUM = {}
 
 
@@ -29,8 +34,13 @@ def paired(a, b):
     return mu, half, abs(mu) > half
 
 
+def argbest(vals):
+    m = max(v for v in vals if v is not None)
+    return {i for i, v in enumerate(vals) if v is not None and abs(v - m) < 1e-9}
+
+
 def fd(a, b):
-    mu, half, sig = paired(a, b); return f"{mu:+.2f}\\,$\\pm$\\,{half:.2f}{'$^{*}$' if sig else ''}"
+    mu, half, sig = paired(a, b); return f"${mu:+.2f}$\\,$\\pm$\\,{half:.2f}{'$^{*}$' if sig else ''}"
 
 
 def fm(r, bold=False):
@@ -45,7 +55,7 @@ src, orc1, orc3 = R["source"], R["fac_oracle_1v"], R["fac_oracle"]
 # ------------------------------------------------------------------ A. scale chain
 L = []
 for lab, k1, k3 in [("default scale ($s_0$)", "source", None), ("val-selected fixed scale per direction", "fac_valscale_1v", "fac_valscale"), ("stream-level factor (median of TAC factors)", "fac_global_1v", "fac_global"),
-                    ("\\textbf{TAC per-image factor}", "tac_1v", "tac"), ("oracle per-image factor (GT sizes)", "fac_oracle_1v", "fac_oracle")]:
+                    ("TAC per-image factor (ours)", "tac_1v", "tac"), ("oracle per-image factor (GT sizes)", "fac_oracle_1v", "fac_oracle")]:
     a = R[k1]; c = R.get(k3)
     g1 = "--" if k1 == "source" else f"{100 * (a['mean'] - src['mean']) / (orc1['mean'] - src['mean']):.0f}\\%"
     d1 = "--" if k1 == "source" else fd(a, src)
@@ -65,7 +75,7 @@ NUM["chain::tac3_2r_vs_oracle3"] = list(paired(R["tac_rounds2"], R["fac_oracle"]
 
 # ------------------------------------------------------------------ B. estimator
 L = []
-for lab, k in [("median of the votes (no weights, no prior)", "est_median"), ("confidence-weighted mean of votes", "est_confmean"), ("IRLS, class-agnostic (pooled) prior", "est_noclass"), ("\\textbf{IRLS, per-structure prior (TAC)}", "tac")]:
+for lab, k in [("median of the votes (no weights, no prior)", "est_median"), ("confidence-weighted mean of votes", "est_confmean"), ("IRLS, class-agnostic (pooled) prior", "est_noclass"), ("IRLS, per-structure prior (ours)", "tac")]:
     r = R[k]; L.append(f"{lab} & {fm(r, k == 'tac')} & {r['ap50']:.2f} & {'--' if k == 'tac' else fd(r, R['tac'])} \\\\")
     NUM[f"est::{k}"] = {"mean": r["mean"], "std": r["std"], "d_tac": None if k == "tac" else list(paired(r, R["tac"]))}
 write("tab_estimator.tex", L)
@@ -77,14 +87,22 @@ def tcell(key):
 
 
 L = []
-for lab, k, ref, tk in [("blind: 3 scales \\{600, 800, 1000\\}, WBF", "ss_fix3_wbf", "tac", None), ("blind: 3 scales, WBF + re-scoring", "ss_fix3_wbf_ar", "tac", "blind3_ar"),
-                        ("\\textbf{TAC-3} (ours)", "tac", None, "tac3"), ("\\textbf{TAC-3, 2 rounds} (ours)", "tac_rounds2", None, "tac3_2r"),
-                        ("blind: 3 scales $\\times$ flip, WBF + re-scoring", "ss_fix3f_wbf_ar", "tac_v7", None),
-                        ("blind: 7 scales \\{500--1200\\}, WBF", "ss_fix7_wbf", "tac_v7", None), ("blind: 7 scales, WBF + re-scoring", "ss_fix7_wbf_ar", "tac_v7", "blind7_ar"),
-                        ("\\textbf{TAC-7} (ours)", "tac_v7", None, "tac7"), ("\\textbf{TAC-11} (ours)", "tac_v11", None, "tac11"),
-                        ("18-view WBF + re-scoring", "ss_all_flip_wbf_ar", None, "wbf18_ar"), ("18-view heat-map fusion", "heatmap18", None, "heatmap18")]:
+_BL = [("blind: 3 scales \\{600, 800, 1000\\}, WBF", "ss_fix3_wbf", "tac", None, 3), ("blind: 3 scales, WBF + re-scoring", "ss_fix3_wbf_ar", "tac", "blind3_ar", 3),
+       ("TAC-3 (ours)", "tac", None, "tac3", 3), ("TAC-3, 2 rounds (ours)", "tac_rounds2", None, "tac3_2r", 3),
+       ("blind: 3 scales $\\times$ flip, WBF + re-scoring", "ss_fix3f_wbf_ar", "u7_k17", None, 7),
+       ("blind: 7 scales \\{500--1200\\}, WBF", "ss_fix7_wbf", "u7_k17", None, 7), ("blind: 7 scales, WBF + re-scoring", "ss_fix7_wbf_ar", "u7_k17", "blind7_ar", 7),
+       ("TAC-7 (ours)", "u7_k17", None, "tac7", 7), ("TAC-11 (ours)", "tac_v11", None, "tac11", 18),
+       ("18-view WBF + re-scoring", "ss_all_flip_wbf_ar", None, "wbf18_ar", 18), ("18-view heat-map fusion", "heatmap18", None, "heatmap18", 18)]
+_bb = {}
+for blk in (3, 7, 18):
+    idx = [i for i, row in enumerate(_BL) if row[4] == blk]
+    bm = argbest([R[_BL[i][1]]["mean"] for i in idx]); b5 = argbest([R[_BL[i][1]]["ap50"] for i in idx])
+    for j, i in enumerate(idx):
+        _bb[i] = (j in bm, j in b5)
+for i, (lab, k, ref, tk, blk) in enumerate(_BL):
     r = R[k]; v = r["views"] if r["views"] else 18; sp, mem = tcell(tk)
-    L.append(f"{lab} & {v:.0f} & {fm(r, 'ours' in lab)} & {r['ap50']:.2f} & {'--' if ref is None else fd(r, R[ref])} & {sp} & {mem} \\\\")
+    ap50 = f"\\textbf{{{r['ap50']:.2f}}}" if _bb[i][1] else f"{r['ap50']:.2f}"
+    L.append(f"{lab} & {v:.0f} & {fm(r, _bb[i][0])} & {ap50} & {'--' if ref is None else fd(r, R[ref])} & {sp} & {mem} \\\\")
     NUM[f"blind::{k}"] = {"mean": r["mean"], "std": r["std"], "views": v, "d_ref": None if ref is None else list(paired(r, R[ref])), "timing": TIM.get(tk)}
 write("tab_blind.tex", L)
 
@@ -97,13 +115,13 @@ if UV:
         t = fm(r, bold)
         NUM[f"uva::{key}"] = {"mean": r["mean"], "std": r["std"], "views": r["views"], "d_ref": None if ref is None else list(paired(r, UV[ref] if ref in UV else R[ref]))}
         return f"{lab} & {r['views']:.2f} & {t} & {r['ap50']:.2f} & {d} \\\\"
-    L = [urow("\\tac-3 (no bracket)", "tac", None),
-         urow("\\tac-7, fixed bracket $\\pm15\\%$", "tac_v7", "tac"),
-         urow("\\tac-11, fixed bracket", "tac_v11", "tac_v7"),
-         "\\midrule",
-         urow("\\textbf{UVA, quadrature bracket}", "u7_k17", "tac_v7", True),
-         urow("UVA, gated ($\\tau_s=0.08$)", "ua_t08", "tac_v7"),
-         urow("UVA, gated ($\\tau_s=0.12$)", "ua_t12", "tac")]
+    _UR = [("\\tac-3 (no bracket)", "tac", None), ("\\quad fixed bracket $\\pm15\\%$ (control)", "tac_v7", "tac"),
+           ("\\tac-11, fixed bracket", "tac_v11", "tac_v7"), None,
+           ("\\tac-7, quadrature (ours)", "u7_k17", "tac_v7"), ("UVA, gated ($\\tau_s=0.08$)", "ua_t08", "tac_v7"),
+           ("UVA, gated ($\\tau_s=0.12$)", "ua_t12", "tac")]
+    _uv = [((UV[k] if k in UV else R[k])["mean"] if row else None) for row in _UR for k in [row[1] if row else None]]
+    _ub = argbest(_uv)
+    L = [("\\midrule" if row is None else urow(row[0], row[1], row[2], i in _ub)) for i, row in enumerate(_UR)]
     write("tab_uva.tex", L)
 # derived timing numbers quoted in Sec. 5.9 (idle-GPU run, c1->c2 seed 42): s/img to 2 decimals, GB to 1 decimal, speed ratios
 if TIM:
@@ -138,8 +156,11 @@ if LD:
 
 # ------------------------------------------------------------------ D. in-domain
 L = []
-for lab, k in [("source model", "in_source"), ("\\textbf{TAC-3}", "in_tac"), ("\\textbf{TAC-7}", "in_tac_v7")]:
-    r = R[k]; L.append(f"{lab} & {fm(r, k != 'in_source')} & {r['ap50']:.2f} & {'--' if k == 'in_source' else fd(r, R['in_source'])} \\\\")
+_IN = [("source model", "in_source"), ("TAC-3 (ours)", "in_tac"), ("TAC-7 (ours)", "in_tac_v7")]
+_ib = argbest([R[k]["mean"] for _, k in _IN]); _i5 = argbest([R[k]["ap50"] for _, k in _IN])
+for i, (lab, k) in enumerate(_IN):
+    r = R[k]; ap50 = f"\\textbf{{{r['ap50']:.2f}}}" if i in _i5 else f"{r['ap50']:.2f}"
+    L.append(f"{lab} & {fm(r, i in _ib)} & {ap50} & {'--' if k == 'in_source' else fd(r, R['in_source'])} \\\\")
     NUM[f"indomain::{k}"] = {"mean": r["mean"], "std": r["std"], "d": None if k == "in_source" else list(paired(r, R["in_source"]))}
 write("tab_indomain.tex", L)
 
@@ -149,9 +170,12 @@ NAMES = {"4c": "Heart-4CC", "abdomen": "Abdomen", "spine": "Spine"}
 for d, b in BOOT.items():
     cl = b["clusters"]; n_img = sum(v["n_images"] for v in cl.values()); n_cl = sum(v["n_clusters"] for v in cl.values())
     L.append(f"\\multicolumn{{5}}{{l}}{{\\textit{{{NAMES[d]} ({n_cl} clusters / {n_img} images)}}}}\\\\")
-    for key, lab in [("tac7-source", "TAC-7 vs.\\ source"), ("tac7-heatmap18", "TAC-7 vs.\\ HM-18"), ("tac7-wbf18_ar", "TAC-7 vs.\\ WBF-18+RS"), ("tac7-cotta", "TAC-7 vs.\\ CoTTA-det"), ("tac3_2r-wbf18_ar", "TAC-3 (2r) vs.\\ WBF-18+RS"), ("tac3_2r-cotta", "TAC-3 (2r) vs.\\ CoTTA-det")]:
+    # the seven-view configuration reported as TAC-7 is the quadrature bracket (tac7q) where its
+    # bootstrap has been run, and the fixed bracket (tac7) otherwise
+    _p7 = (lambda ref: ("tac7q-" + ref) if ("tac7q-" + ref) in b["bootstrap"] else ("tac7-" + ref))
+    for key, lab in [(_p7("source"), "TAC-7 vs.\\ source"), (_p7("heatmap18"), "TAC-7 vs.\\ HM-18"), (_p7("wbf18_ar"), "TAC-7 vs.\\ WBF-18+RS"), (_p7("cotta"), "TAC-7 vs.\\ CoTTA-det"), ("tac3_2r-wbf18_ar", "TAC-3 (2r) vs.\\ WBF-18+RS"), ("tac3_2r-cotta", "TAC-3 (2r) vs.\\ CoTTA-det")]:
         v = b["bootstrap"][key]; x, y = key.split("-"); dd = b["dedup_ap"]
-        L.append(f"{lab} & {v['point']:+.2f} & [{v['ci95'][0]:+.2f}, {v['ci95'][1]:+.2f}] & {dd[x]['dedup_mean'] - dd[y]['dedup_mean']:+.2f} & {v['p_le_0']:.3f} \\\\")
+        L.append(f"{lab} & {v['point']:+.2f} & [{v['ci95'][0]:+.2f}, {v['ci95'][1]:+.2f}] & {dd[x]['dedup_mean'] - dd[y]['dedup_mean']:+.2f} & {('<0.001' if v['p_le_0'] < 0.001 else format(v['p_le_0'], '.3f'))} \\\\")
         NUM[f"boot::{d}::{key}"] = {**v, "dedup_diff": dd[x]["dedup_mean"] - dd[y]["dedup_mean"], "per_dir": None}
     NUM[f"dedup::{d}"] = b["dedup_ap"]; NUM[f"clusters::{d}"] = cl
 write("tab_bootstrap.tex", L)

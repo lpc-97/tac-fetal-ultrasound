@@ -15,6 +15,10 @@ results/
 
 # except the four de-identified frames the project page animates
 !docs/assets/*.jpg
+
+# except the regenerated paper figures
+!paper_figures/out/*.pdf
+!paper_figures/out/*.png
 *.pdf
 *.dcm
 *.nii
