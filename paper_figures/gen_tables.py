@@ -193,29 +193,31 @@ for name, T, hdr in [("rt", RT, ["c1$\\to$c2", "c1$\\to$c3", "c2$\\to$c1", "c2$\
     write(f"tab_dirs_{name}.tex", "\n".join(L) + "\n")
     NUM[f"dirhdr_{name}"] = hdr
 
-# ------------------------------------------------------------------ Table: component ablation on test (4 settings)
-ABL = [("TAC-light", "TAC-3 (full)"), ("TAC w/o AR", "\\quad w/o structure-aware re-scoring"), ("TAC w/o s0 calib", "\\quad w/o calibrated $s_0$ (default 800)"), ("TAC (2 rounds)", "\\quad + second round"), ("TAC 7 views", "TAC-7 (+4 views at $\\pm$15\\%)")]
-L = []
-_abest = []
-for T in (R, RT, AB, SP):
-    _abest.append(argbest([(T[key]["mean"] if key in T else None) for key, _ in ABL] +
-                          [F["TAC 7 views w/o AR"]["mean"] if T is R else None]))
-for i, (key, lab) in enumerate(ABL):
-    cells = []
-    for bi, T in enumerate((R, RT, AB, SP)):
-        if key in T:
+# ------------------------------------------------------------------ Table: component ablation on test, two panels
+# (a) components removed from TAC-3, on the three settings where they were run;
+# (b) a second round and four further views, on all four settings. No cell is missing in either panel.
+ABL_A = [("TAC-light", "TAC-3 (full)"), ("TAC w/o AR", "\\quad w/o structure-aware re-scoring"), ("TAC w/o s0 calib", "\\quad w/o calibrated $s_0$ (default 800)")]
+ABL_B = [("TAC-light", "TAC-3 (full)"), ("TAC (2 rounds)", "\\quad + second round"), ("TAC 7 views", "TAC-7 (+4 views at $\\pm$15\\%)")]
+
+
+def abl_panel(rows, tables):
+    best = [argbest([T[k]["mean"] for k, _ in rows]) for T in tables]   # KeyError if a cell is missing
+    L = []
+    for i, (key, lab) in enumerate(rows):
+        cells = []
+        for bi, T in enumerate(tables):
             r = T[key]; ref = T["TAC-light"]
-            cells.append(f"{fmt(r['mean'], r['std'], bold=(i in _abest[bi]))} & {'--' if key == 'TAC-light' else delta(r, ref)}")
-        else:
-            cells.append("\multicolumn{2}{c}{n/a}")
-    L.append(f"{lab} & " + " & ".join(cells) + " \\\\")
+            cells.append(f"{fmt(r['mean'], r['std'], bold=(i in best[bi]))} & {'--' if key == 'TAC-light' else delta(r, ref)}")
+        L.append(f"{lab} & " + " & ".join(cells) + " \\\\")
+    return "\n".join(L) + "\n"
+
+
+write("tab_ablation_a.tex", abl_panel(ABL_A, (R, AB, SP)))
+write("tab_ablation_b.tex", abl_panel(ABL_B, (R, RT, AB, SP)))
 r = F["TAC 7 views w/o AR"]; ref = F["TAC 7 views (+-15% scales)"]
-NA2 = "\\multicolumn{2}{c}{n/a}"
-L.append(f"\\quad TAC-7 w/o structure-aware re-scoring & {fmt(r['mean'], r['std'], bold=(len(ABL) in _abest[0]))} & {delta(r, ref)} & {NA2} & {NA2} & {NA2} \\\\")
-NUM["tac7_noar_heart"] = [r["mean"], r["std"], *paired(r, ref)]
-write("tab_ablation.tex", "\n".join(L) + "\n")
+NUM["tac7_noar_heart"] = [r["mean"], r["std"], *paired(r, ref)]   # recorded, no longer tabulated
 for T, name in [(R, "heart"), (RT, "rt"), (AB, "abdomen"), (SP, "spine")]:
-    for key, _ in ABL:
+    for key in dict(ABL_A + ABL_B):
         if key in T:
             NUM[f"abl_{name}::{key}"] = [T[key]["mean"], T[key]["std"], *paired(T[key], T["TAC-light"])]
 
