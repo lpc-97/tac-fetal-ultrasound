@@ -16,7 +16,7 @@ SPEC = [
     ("Senior heatmap fusion (18 views)", "18-view heat-map fusion", 18, "h", C["gold"], False),
     ("18-view WBF", "18-view WBF", 18, "p", C["teal"], False), ("18-view WBF + AR", "18-view WBF + re-scoring", 18, "H", C["teal"], False),
     ("CoTTA-det", "CoTTA-det (18 views + training)", 18, "d", C["blue"], True),
-    ("TAC-light", "TAC-3 (ours)", 3.0, "o", OURS, False), ("TAC (2 rounds)", "TAC-3, 2 rounds (ours)", None, "o", OURS, False), ("TAC 7 views", "TAC-7 (ours)", 7.0, "*", OURS, False),
+    ("TAC-light", "TAC-3 (ours)", 3.0, "o", OURS, False), ("TAC (2 rounds)", "TAC-3, 2 rounds (ours)", None, "o", OURS, False), ("TAC 7 views (quadrature)", "TAC-7 (ours)", 7.0, "*", OURS, False),
 ]
 fig, axes = plt.subplots(1, 4, figsize=(6.9, 2.6), gridspec_kw={"wspace": 0.3})
 seen = {}

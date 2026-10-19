@@ -95,15 +95,22 @@ directory holding `datasets/`, `output/` and `results/`; it defaults to the curr
 
 ## Reproducing the experiments
 
-1. **Train the source detectors.** `runners/eval_fz_seeds.sh` and `runners/eval_rt_seeds.sh` train and
-   evaluate the frozen-BatchNorm Faster R-CNN and RetinaNet source models, for seeds 42, 43 and 44.
+1. **Source detectors.** The frozen-BatchNorm Faster R-CNN models use batch 8, 10k iterations and
+   learning rate 0.01. The RetinaNet models use `configs/od_r50fpn_retinanet_FZ.yaml` with the schedule
+   of the paper passed on the command line: `SOLVER.IMS_PER_BATCH 4 SOLVER.BASE_LR 0.005
+   SOLVER.MAX_ITER 20000 SOLVER.STEPS "(14000, 18000)"`. `runners/eval_fz_seeds.sh` and
+   `runners/eval_rt_seeds.sh` evaluate the trained models for seeds 42, 43 and 44.
 2. **Estimate the source priors.** `tools/anat_prior.py` writes one JSON per source domain, holding the
-   per-structure log-size Gaussians, the pairwise layout Gaussians and the calibrated reference scale.
+   per-structure log-size Gaussians and the pairwise layout Gaussians. The reference scale is
+   calibrated afterwards: the seed-42 source model is evaluated on its own validation split at short
+   edges of 300 to 1200 px (500 to 1200 px for RetinaNet, abdomen and spine), and the best scale is
+   stored in the same JSON as `indomain_best_scale`. Without that key the runner uses 800 px.
 3. **Run TAC and the ablations.** `runners/run_canon.sh` dispatches every configuration reported in the
-   paper by name, for example
+   paper by name: `tac` is TAC-3, `u7_k17` is TAC-7 (the quadrature bracket), `tacr2` is TAC-3 with
+   two rounds, and `tac_v7` is the fixed-bracket control. For example
 
    ```bash
-   VARIANTS="tac tac_v7 tacr2" SPLIT=test SEED=42 GPU=0 bash runners/run_canon.sh
+   VARIANTS="tac u7_k17 tacr2" SPLIT=test SEED=42 GPU=0 bash runners/run_canon.sh
    ```
 
    `runners/launch_utest.sh` queues the uncertainty-aware variants over seeds and directions.

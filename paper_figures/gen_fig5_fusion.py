@@ -48,7 +48,7 @@ HP = [("$\\sigma_u$", [("0.3", "hp_su0.3"), ("0.5", "hp_su0.5"), ("1", "tac"), (
       ("$\\gamma$", [("0", "hp_gam0"), ("0.3", "tac"), ("0.6", "hp_gam0.6"), ("1", "hp_gam1")], "0.3"),
       ("$\\lambda$", [("0.25", "hp_lam0.25"), ("0.5", "tac"), ("1", "hp_lam1"), ("2", "hp_lam2")], "0.5"),
       ("IRLS it.", [("1", "hp_irls1"), ("3", "tac"), ("6", "hp_irls6")], "3"),
-      ("$\\rho_{\\mathrm{out}}$", [("0", "hp_od0"), ("0.05", "hp_od0.05"), ("0.1", "tac"), ("0.5", "hp_od0.5"), ("1", "hp_od1")], "0.1"),
+      ("$\\rho_{\\mathrm{out}}$", [("0", "hp_od0"), ("0.05", "hp_od0.05"), ("0.2", "tac"), ("0.5", "hp_od0.5"), ("1", "hp_od1")], "0.2"),
       ("$\\tau_{\\min}$", [("0.1", "hp_ms0.1"), ("0.3", "tac"), ("0.5", "hp_ms0.5"), ("0.7", "hp_ms0.7")], "0.3"),
       ("$\\sigma_o$", [("0.05", "hp_so0.05"), ("0.1", "tac"), ("0.2", "hp_so0.2"), ("0.4", "hp_so0.4")], "0.1")]
 sub = gs[2].subgridspec(2, 4, wspace=0.45, hspace=0.75)
@@ -64,5 +64,5 @@ for i, (name, opts, dflt) in enumerate(HP):
         ax.set_yticklabels([])
     if i == 0:
         panel_label(ax, "(c)", x=-0.75, y=1.5)
-fig.text(0.735, -0.06, "hyper-parameter value (val, seed 42; dashed = default, 54.14 AP)", ha="center", fontsize=6.5, color=C["ink2"])
+fig.text(0.735, -0.06, f"hyper-parameter value (val, seed 42; dashed = default, {default:.2f} AP)", ha="center", fontsize=6.5, color=C["ink2"])
 save(fig, "fig5_fusion")

@@ -197,7 +197,7 @@ for name, T, hdr in [("rt", RT, ["c1$\\to$c2", "c1$\\to$c3", "c2$\\to$c1", "c2$\
 # (a) components removed from TAC-3, on the three settings where they were run;
 # (b) a second round and four further views, on all four settings. No cell is missing in either panel.
 ABL_A = [("TAC-light", "TAC-3 (full)"), ("TAC w/o AR", "\\quad w/o structure-aware re-scoring"), ("TAC w/o s0 calib", "\\quad w/o calibrated $s_0$ (default 800)")]
-ABL_B = [("TAC-light", "TAC-3 (full)"), ("TAC (2 rounds)", "\\quad + second round"), ("TAC 7 views", "TAC-7 (+4 views at $\\pm$15\\%)")]
+ABL_B = [("TAC-light", "TAC-3 (full)"), ("TAC (2 rounds)", "\\quad + second round"), (QUAD7, "TAC-7 (+4 views)")]
 
 
 def abl_panel(rows, tables):
@@ -227,7 +227,7 @@ for key, lab in [("TAC canonical view only (no fusion)", "canonical view only (n
     r = F[key]; L.append(f"{lab} & 3 & {fmt(r['mean'], r['std'])} & {r['ap50']:.2f} & {'--' if 'WBF' in key else delta(r, F['TAC (WBF, 3 views)'])} \\\\")
     NUM[f"fusion::{key}"] = [r["mean"], r["std"], *paired(r, F["TAC (WBF, 3 views)"])]
 L.append("\\midrule")
-for key, lab in [("TAC 2 views (no flip)", "pass 1 + canonical view (no flip)"), ("TAC (WBF, 3 views)", "TAC-3"), ("TAC 7 views (+-15% scales)", "\\quad fixed bracket $\\pm15\\%$ (control)"), ("TAC 11 views (+-10/20/25% scales)", "TAC-11 ($\\pm$10/20/25\\%)"), ("18-view WBF + AR", "18-view WBF + re-scoring"), ("18-view heatmap (senior)", "18-view heat-map fusion")]:
+for key, lab in [("TAC 2 views (no flip)", "pass 1 + canonical view (no flip)"), ("TAC (WBF, 3 views)", "TAC-3"), ("TAC 7 views (+-15% scales)", "\\quad fixed bracket $\\pm15\\%$ (control)"), ("TAC 11 views (+-10/20/25% scales)", "TAC-11 ($-$20/$-$10/$+$10/$+$25\\%)"), ("18-view WBF + AR", "18-view WBF + re-scoring"), ("18-view heatmap (senior)", "18-view heat-map fusion")]:
     r = F[key]; v = r["views"] if r["views"] else 18
     L.append(f"{lab} & {v:.0f} & {fmt(r['mean'], r['std'])} & {r['ap50']:.2f} & {'--' if key == 'TAC (WBF, 3 views)' else delta(r, F['TAC (WBF, 3 views)'])} \\\\")
     NUM[f"views::{key}"] = [r["mean"], r["std"], r["ap50"], *paired(r, F["TAC (WBF, 3 views)"])]
