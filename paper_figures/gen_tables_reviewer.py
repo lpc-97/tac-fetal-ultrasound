@@ -102,7 +102,8 @@ for blk in (3, 7, 18):
 for i, (lab, k, ref, tk, blk) in enumerate(_BL):
     r = R[k]; v = r["views"] if r["views"] else 18; sp, mem = tcell(tk)
     ap50 = f"\\textbf{{{r['ap50']:.2f}}}" if _bb[i][1] else f"{r['ap50']:.2f}"
-    L.append(f"{lab} & {v:.0f} & {fm(r, _bb[i][0])} & {ap50} & {'--' if ref is None else fd(r, R[ref])} & {sp} & {mem} \\\\")
+    vs = f"{v:.0f}" if abs(v - round(v)) < 1e-9 else f"{v:.1f}"
+    L.append(f"{lab} & {vs} & {fm(r, _bb[i][0])} & {ap50} & {'--' if ref is None else fd(r, R[ref])} & {sp} & {mem} \\\\")
     NUM[f"blind::{k}"] = {"mean": r["mean"], "std": r["std"], "views": v, "d_ref": None if ref is None else list(paired(r, R[ref])), "timing": TIM.get(tk)}
 write("tab_blind.tex", L)
 
@@ -123,6 +124,15 @@ if UV:
     _ub = argbest(_uv)
     L = [("\\midrule" if row is None else urow(row[0], row[1], row[2], i in _ub)) for i, row in enumerate(_UR)]
     write("tab_uva.tex", L)
+    # gated runs: share of images bracketed (each bracketed image costs four more passes than TAC-3) and the
+    # share of the gain of full quadrature acquisition (TAC-7) that a gated run keeps
+    _get = (lambda k: UV[k] if k in UV else R[k])
+    _g7 = _get("u7_k17")["mean"] - _get("tac")["mean"]
+    for _k in ("ua_t08", "ua_t12"):
+        _r = _get(_k)
+        NUM[f"uva::gated::{_k}"] = {"bracket_frac_pct": round(100 * (_r["views"] - 3) / 4, 1),
+                                    "share_of_tac7_gain_pct": round(100 * (_r["mean"] - _get("tac")["mean"]) / _g7, 1),
+                                    "share_of_extra_passes_pct": round(100 * (_r["views"] - 3) / 4, 1)}
 # derived timing numbers quoted in Sec. 5.9 (idle-GPU run, c1->c2 seed 42): s/img to 2 decimals, GB to 1 decimal, speed ratios
 if TIM:
     for k, t in TIM.items():
@@ -156,7 +166,7 @@ if LD:
 
 # ------------------------------------------------------------------ D. in-domain
 L = []
-_IN = [("source model", "in_source"), ("TAC-3 (ours)", "in_tac"), ("TAC-7 (ours)", "in_tac_v7")]
+_IN = [("source model", "in_source"), ("TAC-3 (ours)", "in_tac"), ("TAC-7, fixed bracket (ours)", "in_tac_v7")]
 _ib = argbest([R[k]["mean"] for _, k in _IN]); _i5 = argbest([R[k]["ap50"] for _, k in _IN])
 for i, (lab, k) in enumerate(_IN):
     r = R[k]; ap50 = f"\\textbf{{{r['ap50']:.2f}}}" if i in _i5 else f"{r['ap50']:.2f}"
@@ -175,7 +185,7 @@ for d, b in BOOT.items():
     _p7 = (lambda ref: ("tac7q-" + ref) if ("tac7q-" + ref) in b["bootstrap"] else ("tac7-" + ref))
     for key, lab in [(_p7("source"), "TAC-7 vs.\\ source"), (_p7("heatmap18"), "TAC-7 vs.\\ HM-18"), (_p7("wbf18_ar"), "TAC-7 vs.\\ WBF-18+RS"), (_p7("cotta"), "TAC-7 vs.\\ CoTTA-det"), ("tac3_2r-wbf18_ar", "TAC-3 (2r) vs.\\ WBF-18+RS"), ("tac3_2r-cotta", "TAC-3 (2r) vs.\\ CoTTA-det")]:
         v = b["bootstrap"][key]; x, y = key.split("-"); dd = b["dedup_ap"]
-        L.append(f"{lab} & {v['point']:+.2f} & [{v['ci95'][0]:+.2f}, {v['ci95'][1]:+.2f}] & {dd[x]['dedup_mean'] - dd[y]['dedup_mean']:+.2f} & {('<0.001' if v['p_le_0'] < 0.001 else format(v['p_le_0'], '.3f'))} \\\\")
+        L.append(f"{lab} & ${v['point']:+.2f}$ & $[{v['ci95'][0]:+.2f}, {v['ci95'][1]:+.2f}]$ & ${dd[x]['dedup_mean'] - dd[y]['dedup_mean']:+.2f}$ & {('<0.001' if v['p_le_0'] < 0.001 else format(v['p_le_0'], '.3f'))} \\\\")
         NUM[f"boot::{d}::{key}"] = {**v, "dedup_diff": dd[x]["dedup_mean"] - dd[y]["dedup_mean"], "per_dir": None}
     NUM[f"dedup::{d}"] = b["dedup_ap"]; NUM[f"clusters::{d}"] = cl
 write("tab_bootstrap.tex", L)

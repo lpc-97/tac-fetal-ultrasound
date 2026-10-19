@@ -1,6 +1,6 @@
 """Fig. 11 - what each mechanism of the architecture contributes (Heart-4CC, Faster R-CNN, test, three seeds).
 (a) Waterfall from the source detector to TAC-7: geometric canonicalization, cross-view fusion, structure-aware
-    resolution, the refinement round and the acquired bracket; the right axis reads the same quantity as the fraction
+    resolution and the acquired bracket (TAC-7 runs a single round, so the optional second round is not on this path); the right axis reads the same quantity as the fraction
     of the cross-center loss (in-domain minus cross-domain source AP) that has been closed.
 (b) The asymmetry between correcting the input and adapting the parameters: what two parameter-adaptive methods add
     on the original input, what canonicalization alone adds, and what the same methods still add once the input is
@@ -27,7 +27,6 @@ steps = [("source\ndetector", src, None),
          ("geometric\ncanonicalization", ap("fusion::TAC canonical view only (no fusion)"), "ANI"),
          ("cross-view\nfusion", ap("abl_heart::TAC w/o AR"), "SDF"),
          ("structure\nresolution", ap("abl_heart::TAC-light"), "SDF"),
-         ("refinement\nround", ap("abl_heart::TAC (2 rounds)"), "SDF"),
          ("acquired\nbracket", ap("main_TAC 7 views (quadrature)"), "UVA")]
 fig, axes = plt.subplots(1, 2, figsize=(6.9, 2.7), gridspec_kw={"width_ratios": [1.45, 1.0], "wspace": 0.5})
 

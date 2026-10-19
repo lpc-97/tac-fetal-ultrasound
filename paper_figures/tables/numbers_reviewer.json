@@ -354,6 +354,16 @@
    true
   ]
  },
+ "uva::gated::ua_t08": {
+  "bracket_frac_pct": 77.6,
+  "share_of_tac7_gain_pct": 78.4,
+  "share_of_extra_passes_pct": 77.6
+ },
+ "uva::gated::ua_t12": {
+  "bracket_frac_pct": 26.7,
+  "share_of_tac7_gain_pct": 38.5,
+  "share_of_extra_passes_pct": 26.7
+ },
  "timing::amrod": {
   "s_per_img_2d": 0.7,
   "s_per_img_3d": 0.702,
