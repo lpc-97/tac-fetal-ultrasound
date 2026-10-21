@@ -5,7 +5,7 @@ through anatomy-guided nuisance inference and uncertainty-aware evidence fusion*
 
 TAC adapts a frozen anatomical structure detector online, one unlabeled image at a time, without
 access to source images. It infers the apparent anatomical scale of each test image and corrects it
-before any prediction is fused. Three modules act in a closed loop:
+before any prediction is fused. Three modules act in sequence:
 
 * **ANI**, anatomical nuisance inference: every first-pass detection is treated either as a true
   structure whose log-size has been displaced by one unknown per-image factor, or as an uninformative
@@ -16,7 +16,7 @@ before any prediction is fused. Three modules act in a closed loop:
   Gauss-Hermite nodes of that surrogate, and acquired only where the surrogate spread is wide.
 * **SDF**, structure-aware decision fusion: the boxes of all views are merged by weighted boxes fusion
   and resolved into one detection per structure under a pairwise anatomical layout prior, by iterated
-  conditional modes. The result returns to ANI for a single refinement round.
+  conditional modes. An optional second round re-runs ANI on the canonicalized view.
 
 Nothing is trained, the detector is never updated, and the only information that leaves the source site
 is a few hundred Gaussian statistics over structure sizes and relative positions.
@@ -36,8 +36,7 @@ frame, in five beats:
 5. **Look again.** Eight of the eight annotated structures are recovered, against none before.
 
 Every box is one the frozen detector actually produced and every factor is one the deployed code
-computed; `build/export_demo_cases.py` writes them, including the per-box factor and the first-round
-consensus.
+computed, including the per-box factor and the first-round consensus.
 
 Below that, four stepped animations open up the mechanisms for anyone who wants them: how the level
 assignment of the feature pyramid moves under a scale shift (measured histograms), the three

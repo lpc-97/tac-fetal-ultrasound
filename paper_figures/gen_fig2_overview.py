@@ -1,212 +1,330 @@
-"""Fig. 2 - method overview drawn from real data (Heart-4CC, seed 42, source center 3 -> target center 2, the image of Fig. 8):
-(1) the first pass at the calibrated scale yields candidate boxes with confidences; (2) their log-sizes are fused with the
-source prior of canonical structure sizes into a robust MAP estimate of the scale factor (each candidate votes for the shift
-that brings it to its canonical size; responsibilities down-weight implausible boxes; the posterior over f is shown);
-(3) the image is resampled to the canonical scale and the frozen detector is run on the canonicalized views;
-(4) the boxes of all views are fused by WBF and one box per structure is selected under the pairwise layout prior.
-The scale inference replays adapteacher/engine/tta_canon.py (MIN_SCORE 0.3, SIGMA_OBS 0.1, SIGMA_U 1, OUTLIER 0.2, 3 IRLS steps)."""
+"""Fig. 2 - framework overview of TAC, drawn from the deployed run on one real test frame.
+
+Example: Heart-4CC, seed 42, source center 3 -> target center 2 (the frame of Fig. 8, the example of the project page).
+Data, all read from files, nothing typed by hand:
+  samples/qual_examples_s42.json["c2_small_f033"]  pass-1 boxes ("src"), final boxes of TAC-3 with two rounds ("tac"),
+                                                    deployed factor after the second round ("factor"[0])
+  samples/c2_small_f033.jpg                         the test frame (colour Doppler, as exported; shown with its colour
+                                                    saturation reduced by a third so that the boxes stay legible)
+  results/paper_aux/anat_prior_c3.json              source size and layout prior of center 3, calibrated s0, image count
+The scale inference (ANI) is replayed exactly as adapteacher/engine/tta_canon.py and build/export_demo_data.py do
+(MIN_SCORE 0.3, SIGMA_OBS 0.1, SIGMA_U 1, RHO_OUT 0.2, 3 EM alternations, h = clip(sqrt(3) s, 0.15, 0.5)), and the
+result is checked against build/demo_data.json["result"] before anything is drawn. The canonicalized views are the crop
+of the frame resampled by their factors and are drawn to scale relative to the input frame.
+Layout in inches on a full-figure background axes; image panels and plots are separate axes on top of it."""
 import json
 import math
 import os
 import numpy as np
 import matplotlib.pyplot as plt
-from matplotlib.patches import Rectangle, FancyArrowPatch
+import matplotlib.patheffects as pe
+from matplotlib.patches import Rectangle, FancyBboxPatch, FancyArrowPatch
 from PIL import Image
-from pubstyle import C, OURS, OUT, AUX, save
+from pubstyle import C, OUT, AUX, save
 
 INK, INK2 = C["ink"], C["ink2"]
-PAL = ["#0072B2", "#E69F00", "#009E73", "#D55E00", "#CC79A7", "#56B4E9", "#F0E442", "#8C8C8C", "#264653"]  # by class id 1..9
+PAL = ["#0072B2", "#E69F00", "#009E73", "#D55E00", "#CC79A7", "#56B4E9", "#F0E442", "#8C8C8C", "#264653"]  # class id 1..9, as Fig. 8
+MOD = {"src": ("#5F6B73", "#F2F4F5"), "ani": ("#2A7F77", "#EAF4F2"), "uva": ("#2F6DA3", "#EBF1F8"), "sdf": ("#B0601C", "#FBF1E6")}
+ARW = "#4A4A4A"
+FS, FS_S = 7.0, 6.5           # body and small font size (pt, printed at full text width)
+
 EX = json.load(open(os.path.join(OUT, "samples", "qual_examples_s42.json")))["c2_small_f033"]
 PR = json.load(open(os.path.join(AUX, "anat_prior_c3.json")))
+DEMO = json.load(open(os.path.join(OUT, "..", "build", "demo_data.json")))["result"]
 NAMES = {int(k): v for k, v in PR["names"].items()}
-IM = np.asarray(Image.open(os.path.join(OUT, "samples", "c2_small_f033.jpg")).convert("L"))
-W, H = EX["w"], EX["h"]
-FW, FH = 6.9, 4.1
-ASP = FW / FH  # figure-fraction height that makes a square axes = width * ASP
-
-# ---------------------------------------------------------------- replay the scale inference (round 1) on the pass-1 candidates
-S0 = PR.get("indomain_best_scale", 800); k0 = min(S0 / min(W, H), 4000 / max(W, H)); shift = math.log(S0 / 800.0)
 CAN = PR["canonical_at_800"]
+W, H = EX["w"], EX["h"]
+RGB = np.asarray(Image.open(os.path.join(OUT, "samples", "c2_small_f033.jpg")).convert("RGB")).astype(float)
+GRAY = RGB.mean(axis=2, keepdims=True)
+IMG = np.clip(0.65 * RGB + 0.35 * GRAY, 0, 255).astype(np.uint8)    # colour saturation reduced by a third, intensities unchanged
+
+# ------------------------------------------------------------------ replay ANI on the pass-1 candidates
+S0 = PR.get("indomain_best_scale", 800)
+k0 = min(S0 / min(W, H), 4000 / max(W, H)); shift = math.log(S0 / 800.0)
 cands = [b for b in EX["src"] if b["score"] >= 0.3]
 z = np.array([math.log(math.sqrt(max(b["bbox"][2], 1) * max(b["bbox"][3], 1)) * k0) for b in cands])
 p = np.array([b["score"] for b in cands]); cls = [b["cat"] - 1 for b in cands]
-mu = np.array([CAN[str(k)]["logsize_mean"] + shift for k in cls]); sg2 = np.array([CAN[str(k)]["logsize_std"] ** 2 for k in cls]) + 0.1 ** 2
+mu = np.array([CAN[str(k)]["logsize_mean"] + shift for k in cls])
+sg2 = np.array([CAN[str(k)]["logsize_std"] ** 2 for k in cls]) + 0.1 ** 2
 SIG_U, RHO = 1.0, 0.2
 u = 0.0
 for _ in range(3):
-    lik = np.exp(-0.5 * (z + u - mu) ** 2 / sg2) / np.sqrt(2 * np.pi * sg2); r = p * lik / (p * lik + (1 - p) * RHO + 1e-12)
-    u = float(np.sum(r * (mu - z) / sg2) / (np.sum(r / sg2) + 1.0 / SIG_U ** 2))
-f1 = math.exp(u); f_final = EX["factor"][0]
+    lik = np.exp(-0.5 * (z + u - mu) ** 2 / sg2) / np.sqrt(2 * np.pi * sg2)
+    r = p * lik / (p * lik + (1 - p) * RHO + 1e-12)
+    den = np.sum(r / sg2) + 1.0 / SIG_U ** 2
+    u = float(np.sum(r * (mu - z) / sg2) / den)
+s = 1.0 / math.sqrt(den); h = min(max(math.sqrt(3) * s, 0.15), 0.5)
+f1 = math.exp(u); f2 = EX["factor"][0]
+views = [f1 * math.exp(-h), f1, f1 * math.exp(h)]
+assert abs(u - DEMO["u"]) < 1e-3 and abs(s - DEMO["s"]) < 1e-3 and abs(h - DEMO["h"]) < 1e-3, (u, s, h, DEMO)
+assert all(abs(a - b) < 2e-3 for a, b in zip(views, DEMO["views"])) and abs(f2 - DEMO["f_deployed"]) < 1e-3
+final = [b for b in EX["tac"] if b["score"] >= 0.5]
+print(f"replayed: u*={u:.5f} f*={f1:.4f} s={s:.5f} h={h:.5f} views={[round(v, 4) for v in views]} f(2nd round)={f2:.4f} "
+      f"candidates={len(cands)} final(>=0.5)={len(final)} n_images={PR['n_images']} s0={S0}")
 
+# ------------------------------------------------------------------ crop window: union of all boxes of the example, with margin
+X0, X1, Y0, Y1 = 90, 1015, 160, 750
+CROP = IMG[Y0:Y1, X0:X1]
+RATIO = (Y1 - Y0) / (X1 - X0)
 
-def neg_log_post(uu):
-    lik = np.exp(-0.5 * (z + uu - mu) ** 2 / sg2) / np.sqrt(2 * np.pi * sg2)
-    return -np.sum(np.log(p * lik + (1 - p) * RHO)) + uu ** 2 / (2 * SIG_U ** 2)
-
-
-# ---------------------------------------------------------------- crop window (union of the ground-truth boxes + margin)
-xs = [b["bbox"][0] for b in EX["gt"]] + [b["bbox"][0] + b["bbox"][2] for b in EX["gt"]]
-ys = [b["bbox"][1] for b in EX["gt"]] + [b["bbox"][1] + b["bbox"][3] for b in EX["gt"]]
-cx, cy = (min(xs) + max(xs)) / 2, (min(ys) + max(ys)) / 2
-CW, CH = min(W, (max(xs) - min(xs)) * 1.12), min(H, (max(ys) - min(ys)) * 1.22)   # rectangular crop window around the structures
-X0, Y0 = max(0, min(cx - CW / 2, W - CW)), max(0, min(cy - CH / 2, H - CH))
-RATIO = CH / CW   # axes height = width * RATIO * ASP keeps pixels square
-
+# ------------------------------------------------------------------ canvas in inches
+FW, FH = 7.16, 3.36
 fig = plt.figure(figsize=(FW, FH))
 renderer = fig.canvas.get_renderer()
+bg = fig.add_axes([0, 0, 1, 1]); bg.set_xlim(0, FW); bg.set_ylim(0, FH); bg.axis("off"); bg.set_zorder(0)
+top = fig.add_axes([0, 0, 1, 1], zorder=20); top.set_xlim(0, FW); top.set_ylim(0, FH); top.axis("off"); top.patch.set_alpha(0)
 
 
-def stage_title(x, y, num, text):
-    fig.text(x, y, f"{num}  {text}", fontsize=7.0, fontweight="bold", color=INK, ha="left", va="bottom")
+def axes_in(x, y, w, hh, z=5):
+    return fig.add_axes([x / FW, y / FH, w / FW, hh / FH], zorder=z)
 
 
-def image_axes(x, y, w, boxes=None, flip=False, frame=INK2, lw=0.6):
-    """square axes showing the crop window; w in figure fraction, height derived so that pixels are square"""
-    ax = fig.add_axes([x, y, w, w * RATIO * ASP]); ax.imshow(IM[:, ::-1] if flip else IM, cmap="gray", vmin=0, vmax=255, aspect="auto")
-    if flip:
-        ax.set_xlim(W - X0 - CW, W - X0)
-    else:
-        ax.set_xlim(X0, X0 + CW)
-    ax.set_ylim(Y0 + CH, Y0); ax.set_xticks([]); ax.set_yticks([]); ax.grid(False)
-    for s in ax.spines.values():
-        s.set_edgecolor(frame); s.set_linewidth(lw)
-    placed = []
-    if boxes:
-        for b in sorted(boxes, key=lambda b: (b["bbox"][1], b["bbox"][0])):
-            bx, by, bw, bh = b["bbox"]; col = PAL[(b["cat"] - 1) % 9]
-            ax.add_patch(Rectangle((bx, by), bw, bh, fill=False, ec=col, lw=0.8))
-            lab = f"{NAMES[b['cat'] - 1]} {b['score']:.2f}"
-            cand = [((bx + 1, by - 1), "bottom", "left"), ((bx + 1, by + 1), "top", "left"), ((bx + bw - 1, by - 1), "bottom", "right"), ((bx + 1, by + bh + 1), "top", "left"), ((bx + bw - 1, by + bh + 1), "top", "right")]
-            cand += [((bx + 1, by + 1 + k * bh / 8), "top", "left") for k in range(1, 8)] + [((bx + bw - 1, by + 1 + k * bh / 8), "top", "right") for k in range(1, 8)]
-            for (px, py), va, ha in cand:
-                t = ax.text(px, py, lab, fontsize=4.8, color="white", va=va, ha=ha, bbox=dict(facecolor=col, edgecolor="none", pad=0.18, alpha=0.9), zorder=5)
-                bb = t.get_window_extent(renderer).expanded(1.02, 1.06)
-                if not any(bb.overlaps(q) for q in placed):
-                    placed.append(bb); break
-                t.remove()
-    return ax
+def text_width_in(t):
+    return t.get_window_extent(renderer).width / fig.dpi
 
 
-def arrow(x0, y0, x1, y1, text=None, col=INK2, dy=0.018):
-    fig.patches.append(FancyArrowPatch((x0, y0), (x1, y1), transform=fig.transFigure, arrowstyle="-|>", mutation_scale=8, lw=0.9, color=col))
-    if text:
-        fig.text((x0 + x1) / 2, (y0 + y1) / 2 + dy, text, fontsize=5.2, color=col, ha="center", va="bottom", style="italic")
+def label(x, y, s, ha="center", va="center", fs=FS_S, col=INK, ax=None, **kw):
+    return (ax or top).text(x, y, s, fontsize=fs, color=col, ha=ha, va=va, **kw)
 
 
-TOP, IMW = 0.905, 0.205          # top of the image row, width of the stage-1 / stage-4 images
-IMH = IMW * RATIO * ASP
-lv = 2; can_lv = math.exp(CAN[str(lv)]["logsize_mean"] + shift) / k0   # canonical LV size in original pixels
+def module(x0, x1, y0, y1, key, title, sub):
+    hd, tint = MOD[key]
+    bg.add_patch(FancyBboxPatch((x0, y0), x1 - x0, y1 - y0, boxstyle="round,pad=0,rounding_size=0.06", fc=tint, ec=hd, lw=0.7))
+    hh = 0.18
+    bg.add_patch(FancyBboxPatch((x0, y1 - hh), x1 - x0, hh, boxstyle="round,pad=0,rounding_size=0.06", fc=hd, ec=hd, lw=0.7))
+    bg.add_patch(Rectangle((x0, y1 - hh), x1 - x0, hh / 2, fc=hd, ec="none"))      # square off the lower corners of the strip
+    t = label(x0 + 0.07, y1 - hh / 2, title, ha="left", fs=FS + 0.5, col="white", ax=bg, fontweight="bold")
+    label(x0 + 0.07 + text_width_in(t) + 0.06, y1 - hh / 2, sub, ha="left", fs=FS, col="white", ax=bg)
 
-# ================================================================ stage 1: pass 1 with candidates
-stage_title(0.012, 0.935, "1", "Pass 1 at the calibrated scale $s_0$")
-ax1 = image_axes(0.012, TOP - IMH, IMW, boxes=cands)
-ax1.plot([X0 + CW * 0.03, X0 + CW * 0.03 + can_lv], [Y0 + CH * 0.05] * 2, color=PAL[lv], lw=2.4, solid_capstyle="butt", zorder=6)
-ax1.text(X0 + CW * 0.03 + can_lv + CW * 0.015, Y0 + CH * 0.05, "canonical LV size (prior)", fontsize=4.8, color=PAL[lv], ha="left", va="center", zorder=6, bbox=dict(facecolor="black", edgecolor="none", pad=0.15, alpha=0.45))
-ax1.text(0.98, 0.03, f"{len(cands)} candidates $(b_i, c_i, p_i)$", transform=ax1.transAxes, fontsize=5.4, color="white", ha="right", va="bottom", bbox=dict(facecolor="black", edgecolor="none", pad=0.3, alpha=0.55), zorder=6)
-fig.text(0.012 + IMW / 2, TOP - IMH - 0.03, "frozen source detector, no target labels,\none image at a time; sizes $z_i=\\log\\sqrt{w_ih_i}$", fontsize=5.6, color=INK2, ha="center", va="top", style="italic", linespacing=1.3)
-# the source prior as a small table (the only information that leaves the source site)
-ty = TOP - IMH - 0.125
-fig.text(0.012, ty, f"Source anatomical prior (center 3 training set, {PR['n_images']} images)", fontsize=5.8, fontweight="bold", color=INK, ha="left", va="top")
-cols = [0.03, 0.066, 0.152, 0.19, 0.22]
-for cx_, h in zip(cols, ["", "structure", "size @ $s_0$", "$\\sigma_k$", "$n_k$"]):
-    fig.text(cx_, ty - 0.03, h, fontsize=5.2, color=INK2, ha="left" if cx_ < 0.1 else "right", va="top")
-for i, k in enumerate(sorted(range(9), key=lambda k: -CAN[str(k)]["logsize_mean"])):
-    yy = ty - 0.06 - i * 0.03
-    fig.patches.append(Rectangle((cols[0], yy - 0.007), 0.012, 0.014, transform=fig.transFigure, fc=PAL[k], ec="none"))
-    fig.text(cols[1], yy, NAMES[k], fontsize=5.2, color=INK, ha="left", va="center")
-    fig.text(cols[2], yy, f"{math.exp(CAN[str(k)]['logsize_mean'] + shift):.0f} px", fontsize=5.2, color=INK, ha="right", va="center")
-    fig.text(cols[3], yy, f"{CAN[str(k)]['logsize_std']:.2f}", fontsize=5.2, color=INK, ha="right", va="center")
-    fig.text(cols[4], yy, f"{PR['max_count'][k]}", fontsize=5.2, color=INK, ha="right", va="center")
-fig.text(0.012, ty - 0.06 - 9 * 0.03 - 0.006, "+ pairwise layout Gaussians $(\\mathbf{m}_{kl},\\mathbf{\\Sigma}_{kl})$, $s_0$ = %d px" % S0, fontsize=5.2, color=INK2, ha="left", va="top")
 
-# ================================================================ stage 2: evidence fusion for the scale factor
-stage_title(0.262, 0.935, "2", "Fuse the evidence with the size prior")
-ax2 = fig.add_axes([0.295, 0.575, 0.215, 0.33])
-rows = sorted(set(cls), key=lambda k: -CAN[str(k)]["logsize_mean"]); ypos = {k: i for i, k in enumerate(rows)}
-for k in rows:
-    m, s = CAN[str(k)]["logsize_mean"] + shift, CAN[str(k)]["logsize_std"]
-    ax2.add_patch(Rectangle((m - s, ypos[k] - 0.32), 2 * s, 0.64, fc=PAL[k], ec="none", alpha=0.22))
-    ax2.plot([m, m], [ypos[k] - 0.32, ypos[k] + 0.32], color=PAL[k], lw=0.9)
-seen = {}
-for i, (k, zi, pi, ri) in enumerate(zip(cls, z, p, r)):
-    n_k = sum(1 for kk in cls if kk == k); j = seen.get(k, 0); seen[k] = j + 1
-    yy = ypos[k] + (0 if n_k == 1 else (-0.18 + 0.36 * j / (n_k - 1)))
-    ax2.annotate("", xy=(zi + u, yy), xytext=(zi, yy), arrowprops=dict(arrowstyle="-|>", color=INK2, lw=0.6, mutation_scale=6, alpha=0.7))
-    ax2.plot(zi, yy, marker="o", ms=3.0 + 3.5 * pi, mfc="white", mec=PAL[k], mew=0.8, zorder=4)
-    ax2.plot(zi + u, yy, marker="o", ms=3.0 + 3.5 * pi, mfc=PAL[k], mec=PAL[k], mew=0.6, alpha=0.25 + 0.75 * ri, zorder=5)
-ax2.set_yticks(range(len(rows))); ax2.set_yticklabels([NAMES[k] for k in rows], fontsize=6)
-ticks = [50, 100, 200, 400]; ax2.set_xticks([math.log(t) for t in ticks]); ax2.set_xticklabels([str(t) for t in ticks], fontsize=6)
-ax2.set_xlim(math.log(35), math.log(560)); ax2.set_ylim(-0.7, len(rows) - 0.3); ax2.invert_yaxis()
-ax2.set_xlabel("structure size at $s_0$ (px, log axis)", fontsize=6, labelpad=1)
-ax2.grid(axis="x", alpha=0.15); ax2.grid(axis="y", alpha=0)
-for s in ("top", "right"):
-    ax2.spines[s].set_visible(False)
-fig.text(0.295, 0.912, "band: prior $\\mu_k\\pm\\sigma_k$;  open: observed $z_i$ (size $\\propto p_i$);  filled: $z_i+u^*$ (opacity $=r_i$)", fontsize=4.9, color=INK2, ha="left", va="bottom")
-# posterior over f
-ax3 = fig.add_axes([0.295, 0.215, 0.215, 0.24])
-uu = np.linspace(math.log(0.2), math.log(2.5), 300); nlp = np.array([neg_log_post(v) for v in uu]); nlp -= nlp.min()
-i0 = int(np.searchsorted(uu, 0.0)); ytop = nlp[i0] * 1.18
-ax3.plot(np.exp(uu), nlp, color=OURS, lw=1.2)
-ax3.set_xscale("log"); ax3.set_xticks([0.25, 0.5, 1, 2]); ax3.set_xticklabels(["0.25", "0.5", "1", "2"], fontsize=6); ax3.minorticks_off()
-ax3.set_ylim(-ytop * 0.30, ytop); ax3.set_yticks([0, 5, 10, 15]); ax3.tick_params(axis="y", labelsize=5.5)
-ax3.set_xlabel("scale factor $f = e^{u}$", fontsize=6, labelpad=1); ax3.set_ylabel("$-\\log$ posterior", fontsize=6, labelpad=1)
-ax3.plot([1], [nlp[i0]], marker="o", ms=4, mfc="white", mec=INK2, mew=0.8, zorder=5); ax3.text(1.07, nlp[i0], "start $u=0$", fontsize=5.2, color=INK2, va="center")
-ax3.plot([f1], [0], marker="o", ms=4.5, color=OURS, zorder=5)
-ax3.text(f1, -ytop * 0.05, f"MAP $f^*$ = {f1:.2f} (3 IRLS steps)\n2nd round: $f$ = {f_final:.2f}", fontsize=5.3, color=OURS, ha="center", va="top", linespacing=1.25)
-ax3.axhline(0, color=INK2, lw=0.4, alpha=0.5)
-for s in ("top", "right"):
-    ax3.spines[s].set_visible(False)
-fig.text(0.4025, 0.04, "$r_i \\propto \\pi_i\\,\\mathcal{N}(z_i+u;\\mu_{c_i},\\tilde\\sigma_i^2)$ vs. $(1-\\pi_i)\\rho_{\\mathrm{out}}$,  $\\pi_i=g(p_i)$;   "
-         "$u^{*}=\\frac{\\sum_i r_i(\\mu_{c_i}-z_i)/\\tilde\\sigma_i^{2}}{\\sum_i r_i/\\tilde\\sigma_i^{2}+1/\\sigma_u^{2}}$", fontsize=6.0, color=INK, ha="center", va="bottom")
+def image_panel(x, y, w, img, boxes=None, scale=1.0, flip=False, edge="#404040", ls="-", lw=0.6, z=6):
+    """the crop window, resampled by `scale` and drawn at width w (in); boxes in original pixels"""
+    hh = w * RATIO
+    ax = axes_in(x, y, w, hh, z)
+    if scale != 1.0:      # the canonicalized view: the frame resampled by its factor, as the method does
+        img = np.asarray(Image.fromarray(img).resize((max(1, round(img.shape[1] * scale)), max(1, round(img.shape[0] * scale))), Image.BILINEAR))
+    # display copy at 600 dpi of the printed panel, embedded as is in the PDF (interpolation "none")
+    disp = Image.fromarray(img).resize((round(w * 600), round(hh * 600)), Image.LANCZOS)
+    disp = np.asarray(disp)
+    ax.imshow(disp[:, ::-1] if flip else disp, extent=(X0, X1, Y1, Y0), interpolation="none")
+    ax.set_xlim(X0, X1); ax.set_ylim(Y1, Y0); ax.set_xticks([]); ax.set_yticks([]); ax.grid(False)
+    for sp in ax.spines.values():
+        sp.set_visible(True); sp.set_edgecolor(edge); sp.set_linewidth(lw); sp.set_linestyle(ls)
+    for b in boxes or []:
+        bx, by, bw, bh = b["bbox"]
+        rect = Rectangle((bx, by), bw, bh, fill=False, ec=PAL[(b["cat"] - 1) % 9], lw=1.0, zorder=4)
+        rect.set_path_effects([pe.Stroke(linewidth=2.2, foreground="white", alpha=0.9), pe.Normal()])
+        ax.add_patch(rect)
+    return ax, hh
 
-# ================================================================ stage 3: canonicalized views (drawn at f times the pass-1 size)
-X3 = 0.545
-stage_title(X3, 0.935, "3", "Canonicalized views")
-small = IMW * f1; gap = 0.008
-ax4 = image_axes(X3, TOP - small * RATIO * ASP, small, frame=PAL[lv], lw=0.9)
-ax4.plot([X0 + CW * 0.04, X0 + CW * 0.04 + can_lv / f1], [Y0 + CH * 0.09] * 2, color=PAL[lv], lw=2.2, solid_capstyle="butt", zorder=6)
-ax5 = image_axes(X3 + small + gap, TOP - small * RATIO * ASP, small, flip=True, frame=PAL[lv], lw=0.9)
-yl = TOP - small * RATIO * ASP - 0.012
-fig.text(X3 + small / 2, yl, "$\\times f^*$", fontsize=6, color=INK, ha="center", va="top")
-fig.text(X3 + small * 1.5 + gap, yl, "$\\times f^*$, flipped", fontsize=6, color=INK, ha="center", va="top")
-fig.text(X3 + small + gap / 2, yl - 0.05, "structures return to the prior\nsize (LV = ruler)", fontsize=5.4, color=INK2, ha="center", va="top", style="italic", linespacing=1.3)
-sw = small * 0.72; y7 = yl - 0.13 - sw * RATIO * ASP
-for i, lab in enumerate(["$f^*e^{-h}$", "$f^*e^{+h}$"]):
-    image_axes(X3 + i * (sw + gap), y7, sw, frame=C["sky"], lw=0.7)
-    fig.text(X3 + i * (sw + gap) + sw / 2, y7 - 0.012, lab + " (+flip)", fontsize=5.2, color=INK2, ha="center", va="top")
-fig.text(X3 + small + gap / 2, y7 - 0.06, "TAC-3: pass 1 + 2 views\nTAC-7: + 4 views at $f^*e^{\\pm h}$,\n$h=\\mathrm{clip}(\\sqrt{3}s, h_{\\min}, h_{\\max})$", fontsize=5.8, color=INK, ha="center", va="top", linespacing=1.3)
-fig.text(X3 + small + gap / 2, y7 - 0.145, "frozen detector on every view", fontsize=5.6, color=INK2, ha="center", va="top", style="italic")
 
-# ================================================================ stage 4: fusion and re-scoring
-X4 = 0.79
-stage_title(X4 - 0.014, 0.935, "4", "Fuse the views, re-score with the layout prior")
-final = [b for b in EX["tac"] if b["score"] >= 0.5]
-ax6 = image_axes(X4, TOP - IMH, IMW, boxes=final)
-ax6.text(0.98, 0.03, f"output: {len(final)} structures", transform=ax6.transAxes, fontsize=5.4, color="white", ha="right", va="bottom", bbox=dict(facecolor="black", edgecolor="none", pad=0.3, alpha=0.55), zorder=6)
-fig.text(X4 + IMW / 2, TOP - IMH - 0.03, "WBF over all views (IoU 0.55), then one box per\nstructure by ICM on $\\sum_k p_{a_k}+\\lambda\\,\\overline{\\mathrm{plaus}}$;\ncompetitors $\\times\\gamma$", fontsize=5.5, color=INK, ha="center", va="top", linespacing=1.3)
-# layout-prior graph: mean position of every structure relative to the LV on the source training set (offsets in pixels of a 720x576 frame)
-gw = 0.19; ax7 = fig.add_axes([X4 + (IMW - gw) / 2, 0.11, gw, 0.27]); ax7.axis("off")
-pos = {lv: (0.0, 0.0)}
+def arrow(x0, y0, x1, y1, ls="-", col=ARW, lw=0.8, cs="arc3", ms=7):
+    top.add_patch(FancyArrowPatch((x0, y0), (x1, y1), arrowstyle="-|>", mutation_scale=ms, lw=lw, color=col,
+                                  linestyle=ls, connectionstyle=cs, shrinkA=0, shrinkB=0, zorder=30))
+
+
+def ruler(ax, scale):
+    """prior LV size at s0, drawn in the top-left corner of a panel resampled by `scale`"""
+    # the axes keep original-pixel data coordinates while the panel is drawn `scale` times smaller, so a fixed size at
+    # the detector input (can_lv pixels of the pass-1 frame) spans can_lv / scale data units here
+    x_ = X0 + 20 / scale; y_ = Y0 + 24 / scale
+    ax.plot([x_, x_ + can_lv / scale], [y_, y_], color=PAL[2], lw=2.0, solid_capstyle="butt", zorder=6,
+            path_effects=[pe.Stroke(linewidth=3.2, foreground="white"), pe.Normal()])
+
+
+def snowflake(cx, cy, rr, col="white"):
+    for a in range(6):
+        t = a * math.pi / 3 + math.pi / 2
+        top.plot([cx, cx + rr * math.cos(t)], [cy, cy + rr * math.sin(t)], color=col, lw=0.7, solid_capstyle="round", zorder=27)
+        for sgn in (-1, 1):
+            bx, by = cx + 0.62 * rr * math.cos(t), cy + 0.62 * rr * math.sin(t)
+            top.plot([bx, bx + 0.34 * rr * math.cos(t + sgn * 0.85)], [by, by + 0.34 * rr * math.sin(t + sgn * 0.85)], color=col, lw=0.6, zorder=27)
+
+
+# ------------------------------------------------------------------ geometry (inches)
+IW = 1.08                                  # width of the input and output frames
+XI = 0.04
+XA0, XA1 = 1.26, 2.74                      # ANI
+XU0, XU1 = 2.86, 4.80                      # UVA
+XS0, XS1 = 4.92, 5.94                      # SDF
+XO0 = FW - 0.04 - IW                       # output frame
+YM0, YM1 = 0.20, 2.44                      # module bottom / top
+B0, B1 = 2.57, 3.32                        # source-site band
+can_lv = math.exp(CAN["2"]["logsize_mean"] + shift) / k0     # prior LV size (class index 2 = LV) at s0, in original pixels
+
+# ================================================================== source site band
+hd, tint = MOD["src"]
+bg.add_patch(FancyBboxPatch((XA0, B0), FW - 0.04 - XA0, B1 - B0, boxstyle="round,pad=0,rounding_size=0.06", fc=tint, ec=hd, lw=0.7, ls=(0, (4, 2))))
+t = label(XA0 + 0.08, B1 - 0.1, "Source site (offline)", ha="left", fs=FS + 0.5, col=hd, ax=bg, fontweight="bold")
+label(XA0 + 0.08 + text_width_in(t) + 0.08, B1 - 0.1,
+      f"Gaussian statistics of {PR['n_images']} annotated training images; no source image is used at test time",
+      ha="left", fs=FS_S, col=INK2, ax=bg)
+label(XA0 + 0.08, B0 + 0.2, "calibrated\n$s_0$ = %d px" % S0, ha="left", va="center", fs=FS_S, col=INK, linespacing=1.2)
+# size prior: one Gaussian per structure over the log-size at s0
+BX0, BX1 = 1.98, 3.72
+axp = axes_in(BX0, B0 + 0.15, BX1 - BX0, 0.36)
+xx = np.linspace(math.log(28), math.log(330), 400)
+for k in sorted(range(9), key=lambda k: CAN[str(k)]["logsize_mean"]):
+    m, sd = CAN[str(k)]["logsize_mean"] + shift, CAN[str(k)]["logsize_std"]
+    yy = np.exp(-0.5 * (xx - m) ** 2 / sd ** 2)
+    axp.fill_between(xx, yy, color=PAL[k], alpha=0.10, lw=0); axp.plot(xx, yy, color=PAL[k], lw=0.9)
+axp.set_xlim(xx[0], xx[-1]); axp.set_ylim(0, 1.05); axp.set_yticks([])
+axp.set_xticks([math.log(t_) for t_ in (50, 100, 200)]); axp.set_xticklabels(["50", "100", "200 px"], fontsize=FS_S)
+axp.tick_params(axis="x", pad=1, length=2); axp.grid(False); axp.patch.set_alpha(0)
+for sp in ("left", "top", "right"):
+    axp.spines[sp].set_visible(False)
+label(BX1 + 0.08, B0 + 0.36, "size prior\n$\\mathcal{N}(\\mu_k,\\sigma_k^2)$", ha="left", va="center", fs=FS_S, col=INK, linespacing=1.25)
+# layout prior: mean position of every structure relative to the LV on the source training set
+LX0, LX1 = 5.02, 5.84
+axl = axes_in(LX0, B0 + 0.03, LX1 - LX0, B1 - B0 - 0.24)
+lv = 2; pos = {lv: (0.0, 0.0)}
 for k in range(9):
     if k != lv and f"{lv}_{k}" in PR["pairs"]:
         m = PR["pairs"][f"{lv}_{k}"]["mean"]; pos[k] = (m[0] * 720, m[1] * 576)
 for a in pos:
     for b in pos:
         if a < b:
-            ax7.plot([pos[a][0], pos[b][0]], [pos[a][1], pos[b][1]], color=INK2, lw=0.35, alpha=0.3, zorder=1)
-OFF = {"LA": (4, 0, "left"), "RA": (4, -1, "left"), "LV": (-4, 0, "right"), "RV": (-4, -1, "right"), "VS": (-4, 0, "right"), "CRO": (4, 0, "left"), "SP": (4, 0, "left"), "DAO": (4, 0, "left"), "RIB": (4, 2, "left")}
-for k, (xx, yy) in pos.items():
-    ax7.plot(xx, yy, marker="o", ms=5, color=PAL[k], mec="white", mew=0.5, zorder=3)
-    dx, dy, ha = OFF[NAMES[k]]
-    ax7.text(xx + dx, yy + dy, NAMES[k], fontsize=5.0, color=INK, ha=ha, va="center", zorder=4, bbox=dict(facecolor="white", edgecolor="none", pad=0.1, alpha=0.7))
-ax7.set_aspect("equal"); ax7.invert_yaxis(); ax7.margins(0.22)
-fig.text(X4 + IMW / 2, 0.085, "pairwise layout prior $\\mathcal{N}(\\mathbf{m}_{kl},\\mathbf{\\Sigma}_{kl})$: mean\noffsets w.r.t. the LV on the source training set", fontsize=5.2, color=INK2, ha="center", va="top", linespacing=1.3)
+            axl.plot([pos[a][0], pos[b][0]], [pos[a][1], pos[b][1]], color=INK2, lw=0.35, alpha=0.35, zorder=1)
+for k, (px, py) in pos.items():
+    axl.plot(px, py, marker="o", ms=3.8, color=PAL[k], mec="white", mew=0.4, zorder=3)
+axl.set_aspect("equal"); axl.invert_yaxis(); axl.margins(0.1); axl.axis("off")
+label(LX1 + 0.1, B0 + 0.3, "layout prior\n$\\mathcal{N}(\\mathbf{m}_{kl},\\mathbf{\\Sigma}_{kl})$ per pair", ha="left", va="center", fs=FS_S, col=INK, linespacing=1.25)
 
-# ================================================================ arrows between stages and footer
-ym = TOP - IMH / 2
-arrow(0.222, ym, 0.258, ym, "$z_i, p_i, c_i$")
-arrow(0.516, ym, 0.544, ym, "$f^*$")
-arrow(0.748, ym, 0.783, ym, "boxes of\nall views", dy=0.022)
-fig.text(0.5, 0.005, "online, batch size 1, source-free  •  zero learnable parameters  •  only source-domain statistics $(\\mu_k,\\sigma_k,\\mathbf{m}_{kl},\\mathbf{\\Sigma}_{kl},n_k,s_0)$  •  example: center 3 → center 2, seed 42",
-         fontsize=5.8, color=INK2, ha="center", va="bottom")
+# ================================================================== input column: test frame -> frozen detector -> pass 1
+label(XI, B1 - 0.02, "Test image $x$", ha="left", va="top", fs=FS + 0.5, col=INK, fontweight="bold")
+yr = B1 - 0.2 - IW * RATIO
+image_panel(XI, yr, IW, CROP)
+dx0, dx1, dy0, dy1 = XI + 0.1, XI + IW - 0.1, 1.86, 2.13
+top.add_patch(FancyBboxPatch((dx0, dy0), dx1 - dx0, dy1 - dy0, boxstyle="round,pad=0,rounding_size=0.05", fc="#37474F", ec="none", zorder=25))
+snowflake(dx0 + 0.12, (dy0 + dy1) / 2, 0.08)
+label(dx0 + 0.24, (dy0 + dy1) / 2, "frozen detector $D$", ha="left", fs=FS_S, col="white", zorder=28)
+arrow(XI + IW / 2, yr - 0.02, XI + IW / 2, dy1 + 0.01)
+yp = dy0 - 0.16 - IW * RATIO
+axc, hc = image_panel(XI, yp, IW, CROP, boxes=cands)
+ruler(axc, 1.0)
+arrow(XI + IW / 2, dy0 - 0.01, XI + IW / 2, yp + hc + 0.02)
+label(XI + IW / 2 + 0.05, (dy0 + yp + hc) / 2, "pass 1 at $s_0$", ha="left", fs=FS_S, col=INK2)
+label(XI + IW / 2, yp - 0.05, f"{len(cands)} candidates $(b_i,c_i,p_i)$", va="top", fs=FS_S, col=INK)
+key = ["LA", "RA", "LV", "RV", "VS", "CRO", "SP", "DAO", "RIB"]
+inv = {v: k for k, v in NAMES.items()}
+for i, nm in enumerate(key):
+    cx_, cy_ = XI + 0.03 + (i % 3) * 0.36, yp - 0.33 - (i // 3) * 0.135
+    top.add_patch(Rectangle((cx_, cy_ - 0.035), 0.07, 0.07, fc=PAL[inv[nm]], ec="none"))
+    label(cx_ + 0.1, cy_, nm, ha="left", fs=FS_S, col=INK)
+
+# ================================================================== ANI
+module(XA0, XA1, YM0, YM1, "ani", "ANI", "nuisance inference")
+rows = sorted(set(cls), key=lambda k: -CAN[str(k)]["logsize_mean"]); ypos = {k: i for i, k in enumerate(rows)}
+AX0, AXW = XA0 + 0.30, XA1 - XA0 - 0.38
+axv = axes_in(AX0, 1.38, AXW, 0.80)
+for k in rows:
+    m, sd = CAN[str(k)]["logsize_mean"] + shift, CAN[str(k)]["logsize_std"]
+    axv.add_patch(Rectangle((m - sd, ypos[k] - 0.34), 2 * sd, 0.68, fc=PAL[k], ec="none", alpha=0.20))
+    axv.plot([m, m], [ypos[k] - 0.34, ypos[k] + 0.34], color=PAL[k], lw=0.9)
+seen = {}
+for k, zi, pi, ri in zip(cls, z, p, r):
+    n_k = sum(1 for kk in cls if kk == k); j = seen.get(k, 0); seen[k] = j + 1
+    yy = ypos[k] + (0 if n_k == 1 else (-0.2 + 0.4 * j / (n_k - 1)))
+    axv.annotate("", xy=(zi + u, yy), xytext=(zi, yy), arrowprops=dict(arrowstyle="-|>", color=INK2, lw=0.5, mutation_scale=5, alpha=0.75, shrinkA=2, shrinkB=2))
+    axv.plot(zi, yy, marker="o", ms=2.6 + 2.6 * pi, mfc="white", mec=PAL[k], mew=0.7, zorder=4)
+    axv.plot(zi + u, yy, marker="o", ms=2.6 + 2.6 * pi, mfc=PAL[k], mec=PAL[k], mew=0.5, alpha=0.3 + 0.7 * ri, zorder=5)
+axv.set_yticks(range(len(rows))); axv.set_yticklabels([NAMES[k] for k in rows], fontsize=FS_S)
+axv.set_xticks([math.log(t_) for t_ in (50, 100, 200)]); axv.set_xticklabels(["50", "100", "200"], fontsize=FS_S)
+axv.set_xlim(math.log(40), math.log(330)); axv.set_ylim(len(rows) - 0.5, -0.6)
+axv.tick_params(pad=1, length=2); axv.grid(axis="x", alpha=0.25); axv.grid(axis="y", alpha=0); axv.patch.set_alpha(0)
+label(AX0 + AXW / 2, 1.13, "log-size votes (px at $s_0$)", fs=FS_S, col=INK2)
+arrow(AX0 + AXW / 2, 1.04, AX0 + AXW / 2, 0.93, lw=0.7, ms=5)
+label(AX0 + AXW / 2 + 0.06, 0.985, "3 EM steps", ha="left", fs=FS_S, col=INK2)
+# Gaussian surrogate posterior over the scale factor
+axq = axes_in(AX0, 0.44, AXW, 0.42)
+ff = np.exp(np.linspace(math.log(0.22), math.log(1.15), 400)); qq = np.exp(-0.5 * (np.log(ff) - u) ** 2 / s ** 2)
+axq.fill_between(ff, qq, color=MOD["ani"][0], alpha=0.18, lw=0); axq.plot(ff, qq, color=MOD["ani"][0], lw=1.1)
+axq.plot([f1, f1], [0, 1], color=MOD["ani"][0], lw=0.8, ls="--")
+axq.set_xscale("log"); axq.set_xlim(0.22, 1.15); axq.set_ylim(0, 1.12); axq.minorticks_off()
+axq.set_xticks([0.25, 0.5, 1.0]); axq.set_xticklabels(["0.25", "0.5", "1"], fontsize=FS_S); axq.set_yticks([])
+axq.tick_params(axis="x", pad=1, length=2); axq.grid(False); axq.patch.set_alpha(0)
+for sp in ("left", "top", "right"):
+    axq.spines[sp].set_visible(False)
+label(AX0 + AXW / 2, 0.25, "scale factor $f=e^{u}$", fs=FS_S, col=INK2)
+label(XA0 + 0.08, 0.82, "$q(u)$", ha="left", fs=FS_S, col=INK)
+label(XA1 - 0.07, 0.74, f"$f^*$ = {f1:.2f}\n$s$ = {s:.2f}", ha="right", va="center", fs=FS_S, col=MOD["ani"][0], linespacing=1.2)
+
+# ================================================================== UVA
+module(XU0, XU1, YM0, YM1, "uva", "UVA", "view acquisition")
+GAP, FO = 0.05, 0.03                                        # gap between views, offset of the flipped card
+wv = [IW * v for v in views]
+d = max((wv[0] + wv[1]) / 2 + GAP, (wv[1] + wv[2]) / 2 + GAP + FO)
+ext_l, ext_r = -d - wv[0] / 2, d + wv[2] / 2 + FO
+c1 = (XU0 + XU1) / 2 - (ext_l + ext_r) / 2
+centres = [c1 - d, c1, c1 + d]
+YB = 1.20                                                   # common bottom edge of the views
+for i, (cx_, wvi, fv) in enumerate(zip(centres, wv, views)):
+    centre = i == 1
+    edge = MOD["uva"][0]; ls = "-" if centre else (0, (2.5, 1.5))
+    image_panel(cx_ - wvi / 2 + FO, YB + FO, wvi, CROP, scale=fv, flip=True, edge=edge, ls=ls, lw=0.6, z=5)
+    axv_, hv = image_panel(cx_ - wvi / 2, YB, wvi, CROP, scale=fv, edge=edge, ls=ls, lw=1.0 if centre else 0.8, z=6)
+    if centre:
+        ruler(axv_, fv)
+    lab = "$f^*$" if centre else ("$f^*e^{-h}$" if i == 0 else "$f^*e^{+h}$")
+    label(cx_, YB - 0.05, f"×{fv:.2f}", va="top", fs=FS_S, col=INK)
+# Gauss-Hermite nodes of q, aligned under the views
+D_ = d * 1.32
+axn = axes_in(c1 - D_, 0.44, 2 * D_, 0.30)
+lo, hi = u - math.sqrt(3) * s * D_ / d, u + math.sqrt(3) * s * D_ / d
+fn = np.exp(np.linspace(lo, hi, 300)); qn = np.exp(-0.5 * (np.log(fn) - u) ** 2 / s ** 2)
+axn.fill_between(fn, qn, color=MOD["uva"][0], alpha=0.12, lw=0); axn.plot(fn, qn, color=MOD["uva"][0], lw=0.9)
+axn.set_xscale("log"); axn.set_xlim(math.exp(lo), math.exp(hi)); axn.set_ylim(0, 1.1); axn.axis("off")
+for i, (cx_, fv) in enumerate(zip(centres, views)):
+    qv = math.exp(-0.5 * (math.log(fv) - u) ** 2 / s ** 2)
+    axn.plot(fv, qv, marker="o", ms=3.2, color=MOD["uva"][0], zorder=5)
+    ytop_node = 0.44 + 0.30 * qv / 1.1
+    top.plot([cx_, cx_], [ytop_node + 0.04, YB - 0.2], color=MOD["uva"][0], lw=0.6, ls=(0, (1, 1.5)), zorder=29)
+    lab = "$f^*$" if i == 1 else ("$f^*e^{-h}$" if i == 0 else "$f^*e^{+h}$")
+    label(cx_ + (0.05 if i != 1 else 0.04), YB - 0.29, lab, ha="left", fs=FS_S, col=MOD["uva"][0])
+label((XU0 + XU1) / 2, 0.30, "Gauss–Hermite nodes, $h=\\sqrt{3}s$", fs=FS_S, col=INK2)
+label(XU1 - 0.07, YB + wv[2] * RATIO + FO + 0.06, "each view + flip;\ndashed: if $s>\\tau_s$", ha="right", va="bottom", fs=FS_S, col=INK2, linespacing=1.15)
+
+# ================================================================== SDF
+module(XS0, XS1, YM0, YM1, "sdf", "SDF", "decision fusion")
+cxs = (XS0 + XS1) / 2
+label(cxs, YM1 - 0.3, "boxes of all views", fs=FS_S, col=INK2)
+gcol = PAL[2]
+for dxy in ((-0.05, 0.03), (0.0, -0.025), (0.04, 0.02)):
+    top.add_patch(Rectangle((cxs - 0.34 + dxy[0], 1.66 + dxy[1]), 0.26, 0.2, fill=False, ec=gcol, lw=0.7, alpha=0.8))
+arrow(cxs - 0.03, 1.76, cxs + 0.07, 1.76, lw=0.6, ms=5)
+top.add_patch(Rectangle((cxs + 0.09, 1.66), 0.26, 0.2, fill=False, ec=gcol, lw=1.4))
+label(cxs, 1.55, "WBF (IoU 0.55)", va="top", fs=FS_S, col=INK)
+arrow(cxs, 1.36, cxs, 1.20, lw=0.6, ms=5)
+top.add_patch(Rectangle((cxs - 0.33, 0.86), 0.25, 0.2, fill=False, ec=PAL[3], lw=1.4))
+top.add_patch(Rectangle((cxs + 0.08, 0.86), 0.25, 0.2, fill=False, ec=PAL[3], lw=0.8, ls=(0, (2, 1.5)), alpha=0.6))
+label(cxs + 0.205, 0.96, "$\\times\\gamma$", fs=FS_S, col=INK2)
+label(cxs, 0.76, "ICM under the\nlayout prior", va="top", fs=FS_S, col=INK, linespacing=1.15)
+
+# ================================================================== output
+ycand = yp + hc / 2
+yo = ycand - IW * RATIO / 2
+label(XO0, yo + IW * RATIO + 0.05, "Output on $x$", ha="left", va="bottom", fs=FS + 0.5, col=INK, fontweight="bold")
+image_panel(XO0, yo, IW, CROP, boxes=final)
+label(XO0 + IW / 2, yo - 0.05, f"{len(final)} structures, boxes\nmapped back to $x$", va="top", fs=FS_S, col=INK, linespacing=1.15)
+
+# ================================================================== flow arrows
+arrow(XI + IW + 0.02, ycand + 0.22, AX0 - 0.26, ycand + 0.22)                    # candidates -> ANI
+arrow(XA1 - 0.02, 0.60, centres[0] - D_ * 0.25, 0.60)                          # f*, s -> UVA
+label(XU0 + 0.08, 0.71, "$f^*\\!,\\,s$", ha="left", fs=FS_S, col=INK2)
+yv = YB + wv[2] * RATIO / 2
+arrow(centres[2] + wv[2] / 2 + FO + 0.03, yv, XS0 + 0.08, 1.76)                 # views -> WBF
+arrow(XS1 - 0.02, ycand, XO0 - 0.03, ycand)                                     # SDF -> output
+# the pass-1 boxes are fused too: routed under the modules
+yl = 0.06
+top.plot([XI + IW + 0.02, XA0 - 0.06, XA0 - 0.06, cxs], [yp + 0.12, yp + 0.12, yl, yl], color=ARW, lw=0.8, zorder=29)
+arrow(cxs, yl, cxs, YM0 + 0.01)
+label((XA0 + XU1) / 2, yl + 0.015, "pass-1 boxes are fused as well", va="bottom", fs=FS_S, col=INK2)
+# optional second round: canonical view back to ANI
+arrow(centres[1] - wv[1] * 0.1, YB + wv[1] * RATIO + FO + 0.02, XA1 - 0.06, 2.0, ls=(0, (3, 2)), cs="arc3,rad=0.3", col=MOD["uva"][0])
+label(XU0 + 0.1, 2.08, f"optional 2nd round: $f$ = {f2:.2f}", ha="left", fs=FS_S, col=MOD["uva"][0])
+# source statistics feed the detector scale, ANI and SDF
+arrow(2.30, B0, 2.30, YM1 + 0.01, ls=(0, (3, 2)), col=MOD["src"][0])
+arrow((LX0 + LX1) / 2, B0, (LX0 + LX1) / 2, YM1 + 0.01, ls=(0, (3, 2)), col=MOD["src"][0])
+arrow(XA0 + 0.08, B0 + 0.05, dx1 + 0.02, (dy0 + dy1) / 2, ls=(0, (3, 2)), col=MOD["src"][0], cs="arc3,rad=-0.25")
+
 save(fig, "fig2_overview")
