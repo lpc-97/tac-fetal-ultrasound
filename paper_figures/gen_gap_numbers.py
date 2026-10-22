@@ -51,10 +51,15 @@ for dsn, d in PC.items():
     dl = {k.split(":")[-1]: round(d["tac"][k]["AP"] - src[k]["AP"], 2) for k in names}
     ps[dsn] = {"n_structures": len(dl), "min_gain": min(dl.values()), "n_negative": sum(v <= 0 for v in dl.values()), "gains": dl}
 out["per_structure_gains"] = ps
+# per-structure gains of T^3A over the source detector, from its val-selected re-run (results/per_class_ap_t3a_2026-10-22.json)
+PH = json.load(open(os.path.join(HERE, "..", "..", "results", "per_class_ap_t3a_2026-10-22.json"), encoding="utf-8"))
+PH = PH.get("per_class", PH)
+out["per_structure_gains_t3a"] = {dsn: {k.split(":")[-1]: round(d["heat"][k]["AP"] - d["src"][k]["AP"], 2) for k in d["src"] if not k.startswith("_")}
+                                  for dsn, d in PH.items()}
 out["n_structures_total"] = sum(v["n_structures"] for v in ps.values())
 out["n_structures_negative"] = sum(v["n_negative"] for v in ps.values())
 json.dump(out, open(os.path.join(T, "numbers_gap.json"), "w"), indent=1)
 for k, v in out.items():
-    if k not in ("per_structure_gains",):
+    if k not in ("per_structure_gains", "per_structure_gains_t3a"):
         print(f"{k:34s} {v}")
 print("per-structure:", {k: (v["n_structures"], v["min_gain"], v["n_negative"]) for k, v in ps.items()})

@@ -8,7 +8,7 @@ import os
 import statistics as st
 
 from pubstyle import load_aux
-from tabdata import QC, rows, paired, val_variants
+from tabdata import QC, T3A, rows, paired, val_variants
 
 ROOT = os.environ.get("TAC_ROOT", ".")
 OUTD = os.path.join(ROOT, "paper", "tables"); os.makedirs(OUTD, exist_ok=True)
@@ -64,6 +64,14 @@ def k7(tbl, fixed_key):
 
 R = rows("heart4cc_frcnn"); B = rows("heart4cc_bn_models"); F = rows("heart4cc_fusion_views")
 src = R["Source-only (FrozenBN)"]
+T3K = "Senior heatmap fusion (18 views)"
+
+
+def vf(v):
+    """views per image: an integer, or one decimal for a mean over directions (T^3A selects 16 or 18 views per direction)"""
+    return f"{v:.0f}" if abs(v - round(v)) < 1e-9 else f"{v:.1f}"
+
+
 MAIN = [  # (row name in QC, label, views/updates, group)
     ("Source-only (FrozenBN)", "Source model (no adaptation)", "1", "src"),
     ("IoU-Filter", "IoU-Filter~\\cite{ruan2024ioufilter}", "1 + 5 upd.", "single"),
@@ -74,7 +82,7 @@ MAIN = [  # (row name in QC, label, views/updates, group)
     ("O-SFDA", "O-SFDA data acq.~\\cite{shi2024osfda}", "1 + train", "single"),
     ("VLOD-TTA objective", "VLOD-TTA objective~\\cite{belal2026vlod}", "1 + 1 step", "single"),
     ("BufferTTA", "BufferTTA~\\cite{kim2025buffer}", "1 + train", "single"),
-    ("Senior heatmap fusion (18 views)", "T$^3$A~\\cite{pu2026t3a}", "18", "multi"),
+    (T3K, "T$^3$A~\\cite{pu2026t3a}", vf(R[T3K]["views"]), "multi"),
     ("18-view WBF", "18-view WBF~\\cite{solovyev2021wbf}", "18", "multi"),
     ("18-view WBF + AR", "18-view WBF + re-scoring", "18", "multi"),
     ("CoTTA-det", "CoTTA-det~\\cite{wang2022cotta}", "18 + train", "multi"),
@@ -122,6 +130,7 @@ for a, b in [("TAC-light", "Senior heatmap fusion (18 views)"), ("TAC (2 rounds)
 
 # ------------------------------------------------------------------ Table: other settings (RetinaNet, abdomen, spine) - mean AP / AP50 only
 RT, AB, SP = rows("heart4cc_retinanet"), rows("abdomen"), rows("spine")
+_t3v = [T[T3K]["views"] for T in (RT, AB, SP)]
 OTH = [
     ("Source model (no adaptation)", "1", "RetinaNet source-only", "Source-only (FrozenBN)", "Source-only (FrozenBN)"),
     ("IoU-Filter~\\cite{ruan2024ioufilter}", "1 + 5 upd.", "IoU-Filter", "IoU-Filter", "IoU-Filter"),
@@ -132,7 +141,7 @@ OTH = [
     ("O-SFDA data acq.~\\cite{shi2024osfda}", "1 + train", None, "O-SFDA", "O-SFDA"),
     ("VLOD-TTA objective~\\cite{belal2026vlod}", "1 + 1 step", None, "VLOD-TTA objective", "VLOD-TTA objective"),
     ("BufferTTA~\\cite{kim2025buffer}", "1 + train", None, "BufferTTA", "BufferTTA"),
-    ("T$^3$A~\\cite{pu2026t3a}", "18", "Senior heatmap fusion (18 views)", "Senior heatmap fusion (18 views)", "Senior heatmap fusion (18 views)"),
+    ("T$^3$A~\\cite{pu2026t3a}", f"{vf(min(_t3v))}--{vf(max(_t3v))}", T3K, T3K, T3K),
     ("18-view WBF~\\cite{solovyev2021wbf}", "18", "18-view WBF", "18-view WBF", "18-view WBF"),
     ("18-view WBF + re-scoring", "18", "18-view WBF + AR", "18-view WBF + AR", "18-view WBF + AR"),
     ("CoTTA-det~\\cite{wang2022cotta}", "18 + train", "CoTTA-det", "CoTTA-det", "CoTTA-det"),
@@ -181,7 +190,7 @@ for name, T, hdr in [("rt", RT, ["c1$\\to$c2", "c1$\\to$c3", "c2$\\to$c1", "c2$\
     L = ["\\midrule".join([]) ]
     L = []
     _present = [(lab, views, {"rt": krt, "abdomen": kab, "spine": ksp}[name]) for lab, views, krt, kab, ksp in OTH]
-    _present = [(lab, views, k) for lab, views, k in _present if k is not None and k in T]
+    _present = [(lab, vf(T[k]["views"]) if k == T3K else views, k) for lab, views, k in _present if k is not None and k in T]
     _prow = [T[k] for _, _, k in _present]
     _bdir = [argbest([r["dirs"][j] for r in _prow]) for j in range(6)]
     _bmean, _b50 = argbest([r["mean"] for r in _prow]), argbest([r["ap50"] for r in _prow])
@@ -229,7 +238,7 @@ for key, lab in [("TAC canonical view only (no fusion)", "canonical view only (n
 L.append("\\midrule")
 for key, lab in [("TAC 2 views (no flip)", "pass 1 + canonical view (no flip)"), ("TAC (WBF, 3 views)", "TAC-3"), ("TAC 7 views (+-15% scales)", "\\quad fixed bracket $\\pm15\\%$ (control)"), ("TAC 11 views (+-10/20/25% scales)", "TAC-11 ($-$20/$-$10/$+$10/$+$25\\%)"), ("18-view WBF + AR", "18-view WBF + re-scoring"), ("18-view heatmap (senior)", "T$^3$A~\\cite{pu2026t3a}")]:
     r = F[key]; v = r["views"] if r["views"] else 18
-    L.append(f"{lab} & {v:.0f} & {fmt(r['mean'], r['std'])} & {r['ap50']:.2f} & {'--' if key == 'TAC (WBF, 3 views)' else delta(r, F['TAC (WBF, 3 views)'])} \\\\")
+    L.append(f"{lab} & {vf(v) if key == '18-view heatmap (senior)' else format(v, '.0f')} & {fmt(r['mean'], r['std'])} & {r['ap50']:.2f} & {'--' if key == 'TAC (WBF, 3 views)' else delta(r, F['TAC (WBF, 3 views)'])} \\\\")
     NUM[f"views::{key}"] = [r["mean"], r["std"], r["ap50"], *paired(r, F["TAC (WBF, 3 views)"])]
 write("tab_fusion.tex", "\n".join(L) + "\n")
 
@@ -242,6 +251,11 @@ write("tab_val_ablation.tex", "\n".join(L) + "\n")
 NUM["val_ablation"] = {k: V[k] for k, _ in VAL_ABL if k in V}
 NUM["val_hp"] = {k: v for k, v in V.items() if k.startswith("hp_")}
 NUM["val_baselines"] = val_variants("4c", "baselines")
+# T^3A (Appendix E): mean validation AP over the six heart directions per configuration and for the per-direction selection
+_va, _sel = T3A["best"]["val_ap"]["4c"], T3A["best"]["best"]["4c"]
+NUM["val_t3a"] = {v: st.mean(_va[d][v] for d in _va) for v in T3A["best"]["variants"]}
+NUM["val_t3a"]["selected"] = st.mean(_va[d][_sel[d]] for d in _va)
+NUM["val_t3a"]["selected_variant"] = _sel
 
 # ------------------------------------------------------------------ Table: composition
 CP = QC["compose"]

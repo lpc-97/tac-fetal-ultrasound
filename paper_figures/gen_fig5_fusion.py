@@ -12,7 +12,7 @@ gs = fig.add_gridspec(1, 3, width_ratios=[1.15, 1.0, 1.85], wspace=0.35)
 
 # (a) fusion rule
 ax = fig.add_subplot(gs[0])
-items = [("TAC canonical view only (no fusion)", "no\nfusion"), ("TAC fusion=heatmap (3 views)", "heat-\nmap"), ("TAC fusion=NMS (3 views)", "NMS"), ("TAC (WBF, 3 views)", "WBF\n(ours)"), ("18-view heatmap (senior)", "T$^3$A,\n18\nviews")]
+items = [("TAC canonical view only (no fusion)", "no\nfusion"), ("TAC fusion=heatmap (3 views)", "heat-\nmap"), ("TAC fusion=NMS (3 views)", "NMS"), ("TAC (WBF, 3 views)", "WBF\n(ours)"), ("18-view heatmap (senior)", f"T$^3$A,\n{R['18-view heatmap (senior)']['views']:.1f}\nviews")]
 vals = [R[k]["mean"] for k, _ in items]; err = [R[k]["std"] for k, _ in items]
 cols = [BASE, BASE, BASE, OURS, C["gold"]]
 b = ax.bar(range(5), vals, 0.62, color=cols, yerr=err, error_kw=dict(lw=0.6, capsize=2, ecolor=C["ink2"]))
@@ -29,8 +29,8 @@ ax = fig.add_subplot(gs[1])
 pts = [("TAC 2 views (no flip)", 2), ("TAC (WBF, 3 views)", 3), ("TAC 7 views (+-15% scales)", 7), ("TAC 11 views (+-10/20/25% scales)", 11)]
 xs = [v for _, v in pts]; ys = [R[k]["mean"] for k, _ in pts]; es = [R[k]["std"] for k, _ in pts]
 ax.errorbar(xs, ys, yerr=es, color=OURS, marker="o", ms=4.5, lw=1.2, capsize=2, elinewidth=0.6, label="TAC (ours)", zorder=4)
-for k, lab, col, mk in [("18-view WBF + AR", "18-view WBF + re-scoring", C["teal"], "H"), ("18-view WBF", "18-view WBF", C["teal"], "p"), ("18-view heatmap (senior)", "T$^3$A (18 views)", C["gold"], "h")]:
-    ax.errorbar(18, R[k]["mean"], yerr=R[k]["std"], color=col, marker=mk, ms=5, ls="none", capsize=2, elinewidth=0.6, label=lab, mfc=col if "AR" in k or "heat" in k else "white")
+for k, lab, col, mk in [("18-view WBF + AR", "18-view WBF + re-scoring", C["teal"], "H"), ("18-view WBF", "18-view WBF", C["teal"], "p"), ("18-view heatmap (senior)", "T$^3$A", C["gold"], "h")]:
+    ax.errorbar(R[k]["views"] if "heat" in k else 18, R[k]["mean"], yerr=R[k]["std"], color=col, marker=mk, ms=5, ls="none", capsize=2, elinewidth=0.6, label=lab, mfc=col if "AR" in k or "heat" in k else "white")
 # blind fixed multi-scale ensembles with the same number of views (reviewer experiment C; results/reviewer/reviewer_summary.json)
 import json as _json, os as _os
 _RV = _json.load(open(_os.path.join(RES, "reviewer", "reviewer_summary.json"), encoding="utf-8"))["rows"]

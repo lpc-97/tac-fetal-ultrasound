@@ -13,7 +13,7 @@ SPEC = [
     ("IoU-Filter", "IoU-Filter", 1, "s", C["gray"], True), ("AMROD", "AMROD", 1, "^", C["gray"], True), ("WHW", "WHW", 1, "v", C["gray"], True),
     ("CD-Buffer", "CD-Buffer", 1, "D", C["gray"], True), ("SGP", "SGP", 1, "P", C["gray"], True), ("O-SFDA", "O-SFDA", 1, "X", C["gray"], True),
     ("VLOD-TTA objective", "VLOD-TTA", 1, "<", C["gray"], True), ("BufferTTA", "BufferTTA", 1, ">", C["gray"], True),
-    ("Senior heatmap fusion (18 views)", "T$^3$A (18 views)", 18, "h", C["gold"], False),
+    ("Senior heatmap fusion (18 views)", "T$^3$A", None, "h", C["gold"], False),  # mean of 16 / 18 views over the directions
     ("18-view WBF", "18-view WBF", 18, "p", C["teal"], False), ("18-view WBF + AR", "18-view WBF + re-scoring", 18, "H", C["teal"], False),
     ("CoTTA-det", "CoTTA-det (18 views + training)", 18, "d", C["blue"], True),
     ("TAC-light", "TAC-3 (ours)", 3.0, "o", OURS, False), ("TAC (2 rounds)", "TAC-3, 2 rounds (ours)", None, "o", OURS, False), ("TAC 7 views (quadrature)", "TAC-7 (ours)", 7.0, "*", OURS, False),
