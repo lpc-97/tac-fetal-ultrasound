@@ -41,13 +41,13 @@ def place_labels(ax, boxes, names, kind):
         cands += [((x + 1 + k * w / 6.0, y - 1), "bottom", "left") for k in range(1, 6)]
         t = None
         for (px, py), va, ha in cands:
-            t = ax.text(px, py, lab, fontsize=4.8, color="white", va=va, ha=ha, bbox=dict(facecolor=col, edgecolor="none", pad=0.2, alpha=0.9), zorder=5)
+            t = ax.text(px, py, lab, fontsize=5.5, color="white", va=va, ha=ha, bbox=dict(facecolor=col, edgecolor="none", pad=0.2, alpha=0.9), zorder=5)
             bb = t.get_window_extent(renderer).expanded(1.02, 1.06)
             if not any(bb.overlaps(q) for q in placed):
                 placed.append(bb); break
             t.remove(); t = None
         if t is None:  # every candidate collides: fall back to the default position
-            t = ax.text(x + 1, y - 1, lab, fontsize=5.0, color="white", va="bottom", ha="left", bbox=dict(facecolor=col, edgecolor="none", pad=0.25, alpha=0.88), zorder=5)
+            t = ax.text(x + 1, y - 1, lab, fontsize=5.5, color="white", va="bottom", ha="left", bbox=dict(facecolor=col, edgecolor="none", pad=0.25, alpha=0.88), zorder=5)
             placed.append(t.get_window_extent(renderer))
 
 
@@ -55,7 +55,7 @@ for j, (key, title) in enumerate(ORDER):
     ex = EX[key]; im = np.asarray(Image.open(os.path.join(OUT, "samples", key + ".jpg")).convert("L"))
     x0, y0, s = crop_box(ex)
     x0 = max(0, min(x0, ex["w"] - s)); y0 = max(0, min(y0, ex["h"] - s))
-    for i, (kind, lab) in enumerate([("gt", "ground truth"), ("src", "source detector, default scale"), ("tac", "TAC-3, 2 rounds (ours)")]):
+    for i, (kind, lab) in enumerate([("gt", "GT"), ("src", "source"), ("tac", "ours")]):  # rows named in the caption
         ax = axes[i, j]; ax.imshow(im, cmap="gray", vmin=0, vmax=255); ax.set_xlim(x0, x0 + s); ax.set_ylim(y0 + s, y0); ax.set_xticks([]); ax.set_yticks([]); ax.grid(False)
         for sp in ax.spines.values():
             sp.set_visible(False)
@@ -65,8 +65,8 @@ for j, (key, title) in enumerate(ORDER):
             ax.add_patch(Rectangle((x, y), w, h, fill=False, ec=col, lw=0.9, ls="--" if kind == "gt" else "-"))
         place_labels(ax, boxes, ex["names"], kind)
         if i == 0:
-            ax.set_title(title, fontsize=6.8, pad=3)
-        n = len(boxes); extra = f"  $f$ = {ex['factor'][0]:.2f}" if kind == "tac" and ex.get("factor") else ""
-        ax.text(0.02, 0.03, f"{lab}: {n} box{'es' if n != 1 else ''}{extra}", transform=ax.transAxes, fontsize=5.6, color="white", ha="left", va="bottom",
+            ax.set_title(title, fontsize=7, pad=3)
+        n = len(boxes); extra = f", $f$ = {ex['factor'][0]:.2f}" if kind == "tac" and ex.get("factor") else ""
+        ax.text(0.02, 0.03, f"{lab}: {n} box{'es' if n != 1 else ''}{extra}", transform=ax.transAxes, fontsize=7, color="white", ha="left", va="bottom",
                 bbox=dict(facecolor="black", edgecolor="none", pad=0.4, alpha=0.55), zorder=6)
 save(fig, "fig8_qual")

@@ -23,6 +23,18 @@ for _tbl, _methods in T3A["tables"].items():
         for _c in _cells.values():
             _c["views"] = 16 if _c["variant"] == "t3a_s8_e10_t05" else 18
     QC["tables"][_tbl].update(_methods)
+# In-domain reference of each cross-domain direction a -> b: the detector trained on the target domain b, evaluated on
+# b's test split with one view (the diagonal of the source-model matrix, same seed); its six-direction mean is the
+# in-domain mean. It is not an upper bound for multi-view methods, which exceed it on the abdomen.
+UPPER = "Target-domain detector (in-domain reference)"
+for _tbl, _ind, _row in [("heart4cc_frcnn", "indomain_source", "Source-only FRCNN 4c"),
+                         ("heart4cc_retinanet", "indomain_source", "Source-only RetinaNet 4c"),
+                         ("abdomen", "indomain_source_abdomen", "Source-only FRCNN abdomen"),
+                         ("spine", "indomain_source_spine", "Source-only FRCNN spine")]:
+    _diag = QC["tables"][_ind][_row]
+    _ref = next(iter(QC["tables"][_tbl].values()))  # any row of the table, for its (seed, direction) keys
+    QC["tables"][_tbl][UPPER] = {k: _diag[f"{k.split('|')[0]}|{k.split('|')[1].split('_to_')[1]}_to_{k.split('|')[1].split('_to_')[1]}"]
+                                 for k in _ref}
 _PC = load("per_class_ap_t3a_2026-10-22.json")
 for _dsn in QC["per_class"]:
     QC["per_class"][_dsn]["heat"] = _PC.get("per_class", _PC)[_dsn]["heat"]
