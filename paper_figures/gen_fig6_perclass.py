@@ -17,16 +17,16 @@ for ax, (dsn, title) in zip(axes, SETS):
         d = [PC[dsn][row][k]["AP"] - src[k]["AP"] for k in names]
         ax.bar(x + (j - 1) * w, d, w, color=col, lw=0, label=lab)
     ax.axhline(0, color=C["ink2"], lw=0.6)
-    labs = [k.split(":")[1] for k in names]; long = max(len(l) for l in labs) >= 4  # spine labels (VAOC, VOC) collide when horizontal
-    ax.set_xticks(x); ax.set_xticklabels(labs, fontsize=6.3 if not long else 6.0, rotation=35 if long else 0, ha="right" if long else "center", rotation_mode="anchor" if long else "default")
+    labs = [k.split(":")[1] for k in names]; long = max(len(l) for l in labs) >= 3  # three-letter labels collide when horizontal
+    ax.set_xticks(x); ax.set_xticklabels(labs, fontsize=7, rotation=35 if long else 0, ha="right" if long else "center", rotation_mode="anchor" if long else "default")
     ax.set_title(title, fontsize=7.5, pad=8)
     src_ap = [src[k]["AP"] for k in names]
     for i, k in enumerate(names):
-        ax.text(x[i], -0.9, f"{src_ap[i]:.0f}", ha="center", va="top", fontsize=5.5, color=C["ink2"])
-    ax.set_ylim(-2.4, 12.5)
-    ax.set_xlabel("structure (gray: source AP)", fontsize=6.5, labelpad=2)
+        ax.text(x[i], -0.9, f"{src_ap[i]:.0f}", ha="center", va="top", fontsize=7, color=C["ink2"])
+    ax.set_ylim(-2.4, 14.5)  # headroom keeps the legend off the bars
+    ax.set_xlabel("structure (gray: source AP)", fontsize=7, labelpad=2)
 axes[0].set_ylabel("Δ AP vs. source (%)")
-axes[0].legend(loc="upper left", fontsize=6.2, handlelength=1.0, ncol=1)
+axes[0].legend(loc="upper left", fontsize=7, handlelength=1.0, ncol=1)
 for i, ax in enumerate(axes):
     panel_label(ax, f"({chr(97 + i)})", x=-0.1 if i == 0 else -0.06, y=1.16)
 save(fig, "fig6_perclass")

@@ -17,12 +17,12 @@ vals = [R[k]["mean"] for k, _ in items]; err = [R[k]["std"] for k, _ in items]
 cols = [BASE, BASE, BASE, OURS, C["gold"]]
 b = ax.bar(range(5), vals, 0.62, color=cols, yerr=err, error_kw=dict(lw=0.6, capsize=2, ecolor=C["ink2"]))
 for i, v in enumerate(vals):
-    ax.text(i, v + err[i] + 0.12, f"{v:.2f}", ha="center", va="bottom", fontsize=6.3, color=C["ink"])
-ax.set_xticks(range(5)); ax.set_xticklabels([l for _, l in items], fontsize=5.7)
+    ax.text(i, v + err[i] + 0.12, f"{v:.2f}", ha="center", va="bottom", fontsize=7, color=C["ink"])
+ax.set_xticks(range(5)); ax.set_xticklabels([l for _, l in items], fontsize=7)
 ax.set_ylim(50.5, 54.6); ax.set_ylabel("mean AP (%)")
 ax.axvline(3.5, color=C["ink2"], lw=0.5, ls=":")
-ax.set_xlabel("fusion rule (same 3 views)   |   reference", fontsize=6.8)
-panel_label(ax, "(a)", x=-0.2)
+ax.set_xlabel("fusion rule (same 3 views)   |   reference", fontsize=7)
+panel_label(ax, "(a)", x=-0.2, y=1.12)
 
 # (b) number of views
 ax = fig.add_subplot(gs[1])
@@ -38,8 +38,8 @@ bx = [3, 6, 7]; bk = ["ss_fix3_wbf_ar", "ss_fix3f_wbf_ar", "ss_fix7_wbf_ar"]
 ax.errorbar(bx, [_RV[k]["mean"] for k in bk], yerr=[_RV[k]["std"] for k in bk], color=C["gray"], marker="s", ms=4, lw=1.0, ls="--", capsize=2, elinewidth=0.6, label="blind fixed scales + re-scoring", zorder=3)
 ax.set_xscale("log", basex=2); ax.set_xticks([2, 3, 7, 11, 18]); ax.set_xticklabels(["2", "3", "7", "11", "18"]); ax.minorticks_off()
 ax.set_xlabel("fused views per image"); ax.set_ylim(49.5, 56); ax.set_ylabel("mean AP (%)")
-ax.legend(loc="upper center", fontsize=5.8, handlelength=1.2, ncol=2, columnspacing=0.8, handletextpad=0.4, bbox_to_anchor=(0.5, -0.3))
-panel_label(ax, "(b)", x=-0.2)
+ax.legend(loc="upper center", fontsize=7, handlelength=1.2, ncol=2, columnspacing=0.8, handletextpad=0.4, bbox_to_anchor=(0.5, -0.3))
+panel_label(ax, "(b)", x=-0.2, y=1.12)
 
 # (c) hyper-parameter sensitivity (val seed 42)
 V = val_variants("4c", "canon"); default = V["tac"]
@@ -51,18 +51,21 @@ HP = [("$\\sigma_u$", [("0.3", "hp_su0.3"), ("0.5", "hp_su0.5"), ("1", "tac"), (
       ("$\\rho_{\\mathrm{out}}$", [("0", "hp_od0"), ("0.05", "hp_od0.05"), ("0.2", "tac"), ("0.5", "hp_od0.5"), ("1", "hp_od1")], "0.2"),
       ("$\\tau_{\\min}$", [("0.1", "hp_ms0.1"), ("0.3", "tac"), ("0.5", "hp_ms0.5"), ("0.7", "hp_ms0.7")], "0.3"),
       ("$\\sigma_o$", [("0.05", "hp_so0.05"), ("0.1", "tac"), ("0.2", "hp_so0.2"), ("0.4", "hp_so0.4")], "0.1")]
-sub = gs[2].subgridspec(2, 4, wspace=0.45, hspace=0.75)
+sub = gs[2].subgridspec(2, 4, wspace=0.62, hspace=0.75)
 for i, (name, opts, dflt) in enumerate(HP):
     ax = fig.add_subplot(sub[i // 4, i % 4])
     ys = [V[k] for _, k in opts]; xs = range(len(opts))
     ax.plot(xs, ys, color=OURS, marker="o", ms=3, lw=1)
+    j = [l for l, _ in opts].index(dflt)  # the default configuration: black-edged marker
+    ax.plot(j, ys[j], marker="o", ms=4.5, color=OURS, markeredgecolor="black", markeredgewidth=0.6, zorder=5)
     ax.axhline(default, color=C["ink2"], lw=0.6, ls="--")
-    ax.set_xticks(list(xs)); ax.set_xticklabels([l for l, _ in opts], fontsize=5.4, rotation=45)
-    ax.set_ylim(53.3, 54.6); ax.set_yticks([53.5, 54.0, 54.5]); ax.tick_params(axis="y", labelsize=5.8)
+    # only the two ends are labeled at a legible size; every value is listed in the configuration table
+    ax.set_xticks(list(xs)); ax.set_xticklabels([l if k in (0, len(opts) - 1) else "" for k, (l, _) in enumerate(opts)], fontsize=7)
+    ax.set_ylim(53.3, 54.6); ax.set_yticks([53.5, 54.0, 54.5]); ax.tick_params(axis="y", labelsize=7)
     ax.set_title(name, fontsize=7, pad=2, fontweight="normal")
     if i % 4:
         ax.set_yticklabels([])
     if i == 0:
         panel_label(ax, "(c)", x=-0.75, y=1.5)
-fig.text(0.735, -0.06, f"hyper-parameter value (val, seed 42; dashed = default, {default:.2f} AP)", ha="center", fontsize=6.5, color=C["ink2"])
+fig.text(0.735, -0.06, f"hyper-parameter value (val, seed 42; dashed = default, {default:.2f} AP)", ha="center", fontsize=7, color=C["ink2"])
 save(fig, "fig5_fusion")

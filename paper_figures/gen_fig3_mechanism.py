@@ -20,10 +20,10 @@ for j, d in enumerate(DIRS):
     ax.bar(x - w, hs, w, color=C_SRC, lw=0, label="source train @ $s_0$")
     ax.bar(x, ht, w, color=C_T800, lw=0, label="target test @ default 800")
     ax.bar(x + w, hc, w, color=C_TAC, lw=0, hatch="////", edgecolor="white", label="target test after TAC")
-    ax.set_xticks(x); ax.set_xticklabels([f"P{l}" for l in LEVELS], fontsize=6.5); ax.set_ylim(0, 100); ax.set_yticks([0, 50, 100])
+    ax.set_xticks(x); ax.set_xticklabels([f"P{l}" for l in LEVELS], fontsize=7); ax.set_ylim(0, 100); ax.set_yticks([0, 50, 100])
     a, b = d.split("_to_"); ax.set_title(f"{a} → {b}", pad=3)
     tv800 = r["tv_800"]; tvt = np.mean([D[s][d]["tv_tac"] for s in D])
-    ax.text(0.5, 0.97, f"TV {tv800:.2f} → {tvt:.2f}", transform=ax.transAxes, ha="center", va="top", fontsize=6.3, color=C["ink2"])
+    ax.text(0.5, 0.97, f"TV {tv800:.2f} → {tvt:.2f}", transform=ax.transAxes, ha="center", va="top", fontsize=7, color=C["ink2"])
     if j == 0:
         ax.set_ylabel("GT objects per\nFPN level (%)", fontsize=7)
     ax2 = axes[1, j]
@@ -31,8 +31,8 @@ for j, d in enumerate(DIRS):
     ax2.hist(lf, bins=np.linspace(-2, 2, 33), color=C_TAC, lw=0)
     ax2.axvline(0, color=C["ink2"], lw=0.7, ls="--")
     med = float(np.median(f)); p10, p90 = np.percentile(f, 10), np.percentile(f, 90)
-    ax2.set_title(f"med {med:.2f}  [{p10:.2f}–{p90:.2f}]", fontsize=5.8, pad=2, fontweight="normal", color=C["ink2"])
-    ax2.set_xticks([-2, -1, 0, 1, 2]); ax2.set_xticklabels(["¼", "½", "1", "2", "4"], fontsize=6.5); ax2.set_xlim(-2, 2)
+    ax2.set_title(f"{med:.2f} [{p10:.2f}, {p90:.2f}]", fontsize=7, pad=2, fontweight="normal", color=C["ink2"])
+    ax2.set_xticks([-2, -1, 0, 1, 2]); ax2.set_xticklabels(["¼", "½", "1", "2", "4"], fontsize=7); ax2.set_xlim(-2, 2)
     ax2.set_xlabel("scale factor $f$", fontsize=7, labelpad=1)
     if j == 0:
         ax2.set_ylabel("test images", fontsize=7)

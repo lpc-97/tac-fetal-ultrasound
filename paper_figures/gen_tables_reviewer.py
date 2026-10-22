@@ -48,7 +48,8 @@ def argbest(vals):
 
 
 def fd(a, b):
-    mu, half, sig = paired(a, b); return f"${mu:+.2f}$\\,$\\pm$\\,{half:.2f}{'$^{*}$' if sig else ''}"
+    """seed-paired difference; the asterisk marks a 95% interval that excludes zero (the text gives the interval)"""
+    mu, half, sig = paired(a, b); return f"${mu:+.2f}{'^{*}' if sig else ''}$"
 
 
 def fm(r, bold=False):
@@ -94,26 +95,47 @@ def tcell(key):
     return ("", "") if not t else (f"{t['s_per_img']:.2f}", f"{t['peak_alloc_MB'] / 1024:.1f}")
 
 
-L = []
-_BL = [("blind: 3 scales \\{600, 800, 1000\\}, WBF", "ss_fix3_wbf", "tac", None, 3), ("blind: 3 scales, WBF + re-scoring", "ss_fix3_wbf_ar", "tac", "blind3_ar", 3),
-       ("TAC-3 (ours)", "tac", None, "tac3", 3), ("TAC-3, 2 rounds (ours)", "tac_rounds2", None, "tac3_2r", 3),
-       ("blind: 3 scales $\\times$ flip, WBF + re-scoring", "ss_fix3f_wbf_ar", "u7_k17", None, 7),
-       ("blind: 7 scales \\{500--1200\\}, WBF", "ss_fix7_wbf", "u7_k17", None, 7), ("blind: 7 scales, WBF + re-scoring", "ss_fix7_wbf_ar", "u7_k17", "blind7_ar", 7),
-       ("TAC-7 (ours)", "u7_k17", None, "tac7", 7), ("TAC-11 (ours)", "tac_v11", None, "tac11", 18),
-       ("18-view WBF + re-scoring", "ss_all_flip_wbf_ar", None, "wbf18_ar", 18), ("T$^3$A~\\cite{pu2026t3a}", "heatmap18", None, "heatmap18", 18)]
+def vstr(v):
+    return f"{v:.0f}" if abs(v - round(v)) < 1e-9 else f"{v:.1f}"
+
+
+# One table for the fusion step: (a) the fusion rule with the same three views (heart4cc_fusion_views rows of the main
+# collection), (b) the number of views and the blind ensembles at equal compute (reviewer rows). Every difference pairs
+# rows of the same collection: TAC-3 is the reference up to three views (3.3 with a second round), TAC-7 above.
+F = _qrows("heart4cc_fusion_views"); F3 = "TAC (WBF, 3 views)"
+L = ["\\multicolumn{7}{l}{\\textit{(a) Fusion rule, the same three views}}\\\\"]
+_FA = [("canonical view only (no fusion)", "TAC canonical view only (no fusion)"), ("heat-map fusion of T$^3$A", "TAC fusion=heatmap (3 views)"),
+       ("concatenation + class-wise NMS", "TAC fusion=NMS (3 views)"), ("weighted boxes fusion (\\tac-3)", F3)]
+_ba, _b5 = argbest([F[k]["mean"] for _, k in _FA]), argbest([F[k]["ap50"] for _, k in _FA])
+for i, (lab, k) in enumerate(_FA):
+    r = F[k]; ap50 = f"\\textbf{{{r['ap50']:.2f}}}" if i in _b5 else f"{r['ap50']:.2f}"
+    L.append(f"{lab} & 3 & {fm(r, i in _ba)} & {ap50} & {'--' if k == F3 else fd(r, F[F3])} & & \\\\")
+L += ["\\midrule", "\\multicolumn{7}{l}{\\textit{(b) Number of views and blind ensembles at equal compute}}\\\\"]
+_BL = [  # (label, row, collection, reference, timing key, compute block)
+    ("pass 1 + canonical view (no flip)", "TAC 2 views (no flip)", F, F3, None, 3),
+    ("blind: 3 scales \\{600, 800, 1000\\}, WBF", "ss_fix3_wbf", R, "tac", None, 3), ("blind: 3 scales, WBF + re-scoring", "ss_fix3_wbf_ar", R, "tac", "blind3_ar", 3),
+    ("\\tac-3 (ours)", "tac", R, None, "tac3", 3), ("\\tac-3, 2 rounds (ours)", "tac_rounds2", R, "tac", "tac3_2r", 3),
+    ("blind: 3 scales $\\times$ flip, WBF + re-scoring", "ss_fix3f_wbf_ar", R, "u7_k17", None, 7),
+    ("blind: 7 scales \\{500--1200\\}, WBF", "ss_fix7_wbf", R, "u7_k17", None, 7), ("blind: 7 scales, WBF + re-scoring", "ss_fix7_wbf_ar", R, "u7_k17", "blind7_ar", 7),
+    ("\\tac, fixed bracket $\\pm15\\%$ (control)", "tac_v7", R, "u7_k17", None, 7), ("\\tac-7 (ours)", "u7_k17", R, None, "tac7", 7),
+    ("\\tac-11, fixed bracket", "tac_v11", R, "u7_k17", "tac11", 18),
+    ("18-view WBF + re-scoring", "ss_all_flip_wbf_ar", R, "u7_k17", "wbf18_ar", 18), ("T$^3$A~\\cite{pu2026t3a}", "heatmap18", R, "u7_k17", "heatmap18", 18)]
 _bb = {}
 for blk in (3, 7, 18):
-    idx = [i for i, row in enumerate(_BL) if row[4] == blk]
-    bm = argbest([R[_BL[i][1]]["mean"] for i in idx]); b5 = argbest([R[_BL[i][1]]["ap50"] for i in idx])
+    idx = [i for i, row in enumerate(_BL) if row[5] == blk]
+    bm = argbest([_BL[i][2][_BL[i][1]]["mean"] for i in idx]); b5 = argbest([_BL[i][2][_BL[i][1]]["ap50"] for i in idx])
     for j, i in enumerate(idx):
         _bb[i] = (j in bm, j in b5)
-for i, (lab, k, ref, tk, blk) in enumerate(_BL):
-    r = R[k]; v = r["views"] if r["views"] else 18; sp, mem = tcell(tk)
+for i, (lab, k, T, ref, tk, blk) in enumerate(_BL):
+    r = T[k]; v = r["views"] if r["views"] else 18; sp, mem = tcell(tk)
     ap50 = f"\\textbf{{{r['ap50']:.2f}}}" if _bb[i][1] else f"{r['ap50']:.2f}"
-    vs = f"{v:.0f}" if abs(v - round(v)) < 1e-9 else f"{v:.1f}"
-    L.append(f"{lab} & {vs} & {fm(r, _bb[i][0])} & {ap50} & {'--' if ref is None else fd(r, R[ref])} & {sp} & {mem} \\\\")
-    NUM[f"blind::{k}"] = {"mean": r["mean"], "std": r["std"], "views": v, "d_ref": None if ref is None else list(paired(r, R[ref])), "timing": TIM.get(tk)}
-write("tab_blind.tex", L)
+    L.append(f"{lab} & {vstr(v)} & {fm(r, _bb[i][0])} & {ap50} & {'--' if ref is None else fd(r, T[ref])} & {sp} & {mem} \\\\")
+    if T is R:
+        # d_ref keeps the references of the former equal-compute table, which the text quotes
+        old = {"ss_fix3_wbf": "tac", "ss_fix3_wbf_ar": "tac", "ss_fix3f_wbf_ar": "u7_k17", "ss_fix7_wbf": "u7_k17", "ss_fix7_wbf_ar": "u7_k17"}.get(k)
+        NUM[f"blind::{k}"] = {"mean": r["mean"], "std": r["std"], "views": v, "d_ref": None if old is None else list(paired(r, R[old])),
+                              "d_table": None if ref is None else list(paired(r, T[ref])), "timing": TIM.get(tk)}
+write("tab_views.tex", L)
 
 # ------------------------------------------------------------------ F. uncertainty-guided view acquisition (UVA)
 UV = json.load(open(os.path.join(RES, "uncert_summary.json"), encoding="utf-8"))["test"] if os.path.exists(os.path.join(RES, "uncert_summary.json")) else {}
@@ -123,7 +145,8 @@ if UV:
         d = "--" if ref is None else fd(r, UV[ref] if ref in UV else R[ref])
         t = fm(r, bold)
         NUM[f"uva::{key}"] = {"mean": r["mean"], "std": r["std"], "views": r["views"], "d_ref": None if ref is None else list(paired(r, UV[ref] if ref in UV else R[ref]))}
-        return f"{lab} & {r['views']:.2f} & {t} & {r['ap50']:.2f} & {d} \\\\"
+        v = r["views"]; vs = f"{v:.0f}" if abs(v - round(v)) < 1e-9 else f"{v:.2f}"
+        return f"{lab} & {vs} & {t} & {r['ap50']:.2f} & {d} \\\\"
     _UR = [("\\tac-3 (no bracket)", "tac", None), ("\\quad fixed bracket $\\pm15\\%$ (control)", "tac_v7", "tac"),
            ("\\tac-11, fixed bracket", "tac_v11", "tac_v7"), None,
            ("\\tac-7, quadrature (ours)", "u7_k17", "tac_v7"), ("UVA, gated ($\\tau_s=0.08$)", "ua_t08", "tac_v7"),
