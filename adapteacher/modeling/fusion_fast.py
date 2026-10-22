@@ -1,4 +1,5 @@
-# Faster re-implementation of the senior's `gaussian_fusion` (adapteacher/modeling/tta_aug.py) that keeps the
+# Faster re-implementation of the `gaussian_fusion` of T^3A (Pu et al., AAAI 2026; adapteacher/modeling/tta_aug.py,
+# not included here) that keeps the
 # heat-map construction bit-for-bit identical (same per-box expression, same sequential accumulation order) so the
 # peak set is identical; only the per-peak box weighting is batched (float-order differences ~1e-5 px).
 # Extra output field `support` = number of boxes contributing to each fused box.

@@ -92,7 +92,7 @@ _BL = [("blind: 3 scales \\{600, 800, 1000\\}, WBF", "ss_fix3_wbf", "tac", None,
        ("blind: 3 scales $\\times$ flip, WBF + re-scoring", "ss_fix3f_wbf_ar", "u7_k17", None, 7),
        ("blind: 7 scales \\{500--1200\\}, WBF", "ss_fix7_wbf", "u7_k17", None, 7), ("blind: 7 scales, WBF + re-scoring", "ss_fix7_wbf_ar", "u7_k17", "blind7_ar", 7),
        ("TAC-7 (ours)", "u7_k17", None, "tac7", 7), ("TAC-11 (ours)", "tac_v11", None, "tac11", 18),
-       ("18-view WBF + re-scoring", "ss_all_flip_wbf_ar", None, "wbf18_ar", 18), ("18-view heat-map fusion", "heatmap18", None, "heatmap18", 18)]
+       ("18-view WBF + re-scoring", "ss_all_flip_wbf_ar", None, "wbf18_ar", 18), ("T$^3$A~\\cite{pu2026t3a}", "heatmap18", None, "heatmap18", 18)]
 _bb = {}
 for blk in (3, 7, 18):
     idx = [i for i, row in enumerate(_BL) if row[4] == blk]
@@ -183,7 +183,7 @@ for d, b in BOOT.items():
     # the seven-view configuration reported as TAC-7 is the quadrature bracket (tac7q) where its
     # bootstrap has been run, and the fixed bracket (tac7) otherwise
     _p7 = (lambda ref: ("tac7q-" + ref) if ("tac7q-" + ref) in b["bootstrap"] else ("tac7-" + ref))
-    for key, lab in [(_p7("source"), "TAC-7 vs.\\ source"), (_p7("heatmap18"), "TAC-7 vs.\\ HM-18"), (_p7("wbf18_ar"), "TAC-7 vs.\\ WBF-18+RS"), (_p7("cotta"), "TAC-7 vs.\\ CoTTA-det"), ("tac3_2r-wbf18_ar", "TAC-3 (2r) vs.\\ WBF-18+RS"), ("tac3_2r-cotta", "TAC-3 (2r) vs.\\ CoTTA-det")]:
+    for key, lab in [(_p7("source"), "TAC-7 vs.\\ source"), (_p7("heatmap18"), "TAC-7 vs.\\ T$^3$A"), (_p7("wbf18_ar"), "TAC-7 vs.\\ WBF-18+RS"), (_p7("cotta"), "TAC-7 vs.\\ CoTTA-det"), ("tac3_2r-wbf18_ar", "TAC-3 (2r) vs.\\ WBF-18+RS"), ("tac3_2r-cotta", "TAC-3 (2r) vs.\\ CoTTA-det")]:
         v = b["bootstrap"][key]; x, y = key.split("-"); dd = b["dedup_ap"]
         L.append(f"{lab} & ${v['point']:+.2f}$ & $[{v['ci95'][0]:+.2f}, {v['ci95'][1]:+.2f}]$ & ${dd[x]['dedup_mean'] - dd[y]['dedup_mean']:+.2f}$ & {('<0.001' if v['p_le_0'] < 0.001 else format(v['p_le_0'], '.3f'))} \\\\")
         NUM[f"boot::{d}::{key}"] = {**v, "dedup_diff": dd[x]["dedup_mean"] - dd[y]["dedup_mean"], "per_dir": None}
