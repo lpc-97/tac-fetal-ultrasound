@@ -74,7 +74,7 @@ MAIN = [  # (row name in QC, label, views/updates, group)
     ("O-SFDA", "O-SFDA data acq.~\\cite{shi2024osfda}", "1 + train", "single"),
     ("VLOD-TTA objective", "VLOD-TTA objective~\\cite{belal2026vlod}", "1 + 1 step", "single"),
     ("BufferTTA", "BufferTTA~\\cite{kim2025buffer}", "1 + train", "single"),
-    ("Senior heatmap fusion (18 views)", "18-view heat-map fusion", "18", "multi"),
+    ("Senior heatmap fusion (18 views)", "T$^3$A~\\cite{pu2026t3a}", "18", "multi"),
     ("18-view WBF", "18-view WBF~\\cite{solovyev2021wbf}", "18", "multi"),
     ("18-view WBF + AR", "18-view WBF + re-scoring", "18", "multi"),
     ("CoTTA-det", "CoTTA-det~\\cite{wang2022cotta}", "18 + train", "multi"),
@@ -132,7 +132,7 @@ OTH = [
     ("O-SFDA data acq.~\\cite{shi2024osfda}", "1 + train", None, "O-SFDA", "O-SFDA"),
     ("VLOD-TTA objective~\\cite{belal2026vlod}", "1 + 1 step", None, "VLOD-TTA objective", "VLOD-TTA objective"),
     ("BufferTTA~\\cite{kim2025buffer}", "1 + train", None, "BufferTTA", "BufferTTA"),
-    ("18-view heat-map fusion", "18", "Senior heatmap fusion (18 views)", "Senior heatmap fusion (18 views)", "Senior heatmap fusion (18 views)"),
+    ("T$^3$A~\\cite{pu2026t3a}", "18", "Senior heatmap fusion (18 views)", "Senior heatmap fusion (18 views)", "Senior heatmap fusion (18 views)"),
     ("18-view WBF~\\cite{solovyev2021wbf}", "18", "18-view WBF", "18-view WBF", "18-view WBF"),
     ("18-view WBF + re-scoring", "18", "18-view WBF + AR", "18-view WBF + AR", "18-view WBF + AR"),
     ("CoTTA-det~\\cite{wang2022cotta}", "18 + train", "CoTTA-det", "CoTTA-det", "CoTTA-det"),
@@ -223,11 +223,11 @@ for T, name in [(R, "heart"), (RT, "rt"), (AB, "abdomen"), (SP, "spine")]:
 
 # ------------------------------------------------------------------ Table: fusion rule / views (test) + val ablations (seed 42)
 L = []
-for key, lab in [("TAC canonical view only (no fusion)", "canonical view only (no fusion)"), ("TAC fusion=heatmap (3 views)", "Gaussian heat-map fusion"), ("TAC fusion=NMS (3 views)", "concatenation + class-wise NMS"), ("TAC (WBF, 3 views)", "weighted boxes fusion (default)")]:
+for key, lab in [("TAC canonical view only (no fusion)", "canonical view only (no fusion)"), ("TAC fusion=heatmap (3 views)", "heat-map fusion of T$^3$A"), ("TAC fusion=NMS (3 views)", "concatenation + class-wise NMS"), ("TAC (WBF, 3 views)", "weighted boxes fusion (default)")]:
     r = F[key]; L.append(f"{lab} & 3 & {fmt(r['mean'], r['std'])} & {r['ap50']:.2f} & {'--' if 'WBF' in key else delta(r, F['TAC (WBF, 3 views)'])} \\\\")
     NUM[f"fusion::{key}"] = [r["mean"], r["std"], *paired(r, F["TAC (WBF, 3 views)"])]
 L.append("\\midrule")
-for key, lab in [("TAC 2 views (no flip)", "pass 1 + canonical view (no flip)"), ("TAC (WBF, 3 views)", "TAC-3"), ("TAC 7 views (+-15% scales)", "\\quad fixed bracket $\\pm15\\%$ (control)"), ("TAC 11 views (+-10/20/25% scales)", "TAC-11 ($-$20/$-$10/$+$10/$+$25\\%)"), ("18-view WBF + AR", "18-view WBF + re-scoring"), ("18-view heatmap (senior)", "18-view heat-map fusion")]:
+for key, lab in [("TAC 2 views (no flip)", "pass 1 + canonical view (no flip)"), ("TAC (WBF, 3 views)", "TAC-3"), ("TAC 7 views (+-15% scales)", "\\quad fixed bracket $\\pm15\\%$ (control)"), ("TAC 11 views (+-10/20/25% scales)", "TAC-11 ($-$20/$-$10/$+$10/$+$25\\%)"), ("18-view WBF + AR", "18-view WBF + re-scoring"), ("18-view heatmap (senior)", "T$^3$A~\\cite{pu2026t3a}")]:
     r = F[key]; v = r["views"] if r["views"] else 18
     L.append(f"{lab} & {v:.0f} & {fmt(r['mean'], r['std'])} & {r['ap50']:.2f} & {'--' if key == 'TAC (WBF, 3 views)' else delta(r, F['TAC (WBF, 3 views)'])} \\\\")
     NUM[f"views::{key}"] = [r["mean"], r["std"], r["ap50"], *paired(r, F["TAC (WBF, 3 views)"])]

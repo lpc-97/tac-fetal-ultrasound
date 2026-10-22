@@ -129,7 +129,7 @@ class CanonTTATrainer(BaselineTrainer):
             return u, v, int(m.sum()), float(np.sum(r)), float(1.0 / math.sqrt(den))   # Laplace posterior std of u at the MAP
 
         def fuse(views_out, H, W, w=None):
-            # fusion strategy ablation (Information Fusion): wbf (default) | nms (concatenate + class-wise NMS) | heatmap (senior's
+            # fusion strategy ablation (Information Fusion): wbf (default) | nms (concatenate + class-wise NMS) | heatmap (T^3A's
             # Gaussian heat-map fusion, fast implementation) | last (no fusion: only the first canonical view)
             if C.FUSION == "last" or len(views_out) == 1:
                 ob, sc, cl = views_out[-1] if C.FUSION == "last" else views_out[0]

@@ -65,7 +65,8 @@ files below are meant to be dropped into a clone of it. See `NOTICE` for attribu
 adapteacher/engine/tta_canon.py       the TAC test-time loop: ANI, UVA, view construction, fusion
 adapteacher/engine/canon_input.py     resampling of the input to the canonical scale
 adapteacher/modeling/anat_fusion.py   structure resolution under the pairwise layout prior (ICM)
-adapteacher/modeling/fusion_fast.py   the Gaussian heat-map fusion used as a reference method
+adapteacher/modeling/fusion_fast.py   the Gaussian heat-map fusion of T^3A (Pu et al., AAAI 2026),
+                                      re-implemented for the fusion-rule comparison
 tools/anat_prior.py                   estimation of the source size and layout priors from annotations
 configs/canon_config_keys.py.in       the SEMISUPNET.CANON keys to add to adapteacher/config.py
 configs/od_r50fpn_retinanet_FZ.yaml   the one-stage detector configuration

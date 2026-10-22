@@ -8,7 +8,7 @@ from tabdata import QC
 
 PC = QC["per_class"]
 SETS = [("4c", "Heart-4CC (9 structures)"), ("abdomen", "Abdomen (8 structures)"), ("spine", "Spine (6 structures)")]
-ROWS = [("heat", "18-view heat-map fusion", C["gold"], "h"), ("wbfar", "18-view WBF + re-scoring", C["teal"], "H"), ("tac", "TAC-3, 2 rounds (ours)", OURS, "o")]
+ROWS = [("heat", "T$^3$A (18 views)", C["gold"], "h"), ("wbfar", "18-view WBF + re-scoring", C["teal"], "H"), ("tac", "TAC-3, 2 rounds (ours)", OURS, "o")]
 fig, axes = plt.subplots(1, 3, figsize=(6.9, 2.0), gridspec_kw={"width_ratios": [9, 8, 6], "wspace": 0.22})
 for ax, (dsn, title) in zip(axes, SETS):
     src = PC[dsn]["src"]; names = [k for k in src if not k.startswith("_")]
