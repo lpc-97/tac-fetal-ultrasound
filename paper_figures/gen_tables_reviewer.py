@@ -2,7 +2,8 @@
 """Table bodies for the reviewer experiments, generated from results/reviewer/*.json (no number typed by hand):
   tab_scalechain.tex  A. source / val-selected scale / stream-global factor / TAC factor / oracle factor, single view and TAC-3 pipeline
   tab_estimator.tex   B. scale estimator inside TAC-3
-  tab_blind.tex       C. equal-compute blind ensembles vs TAC (+ time / peak memory from the idle-GPU timing run when available)
+  tab_views.tex       C. fusion rule, number of views and equal-compute blind ensembles vs TAC (+ time / peak memory from the
+                      idle-GPU timing run when available)
   tab_firstpass.tex   first-pass candidate groups and oracle-shift groups
   tab_indomain.tex    D. in-domain control
   tab_bootstrap.tex   cluster statistics, de-duplicated AP and cluster-level bootstrap CIs (three datasets)
