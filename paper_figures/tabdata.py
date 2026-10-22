@@ -14,6 +14,18 @@ try:
         QC["tables"].setdefault(_tbl, {}).update(_methods)
 except FileNotFoundError:
     pass
+# T^3A re-run on 2026-10-22 with its configuration selected per direction on validation, like every other baseline
+# (server: collect_t3a.py). Its cells replace the fixed-configuration cells of the same row names. The published
+# eight-scale setting fuses 16 views, the other settings 18.
+T3A = load("qc_t3a_2026-10-22.json")
+for _tbl, _methods in T3A["tables"].items():
+    for _cells in _methods.values():
+        for _c in _cells.values():
+            _c["views"] = 16 if _c["variant"] == "t3a_s8_e10_t05" else 18
+    QC["tables"][_tbl].update(_methods)
+_PC = load("per_class_ap_t3a_2026-10-22.json")
+for _dsn in QC["per_class"]:
+    QC["per_class"][_dsn]["heat"] = _PC.get("per_class", _PC)[_dsn]["heat"]
 T975 = 4.303  # two-sided 97.5% t quantile, 2 dof (3 seeds)
 
 

@@ -18,8 +18,16 @@ RES = os.path.join(ROOT, "results", "reviewer")
 OUTD = os.path.join(ROOT, "paper", "tables")
 T975 = 4.303
 R = json.load(open(os.path.join(RES, "reviewer_summary.json"), encoding="utf-8"))["rows"]
+# T^3A re-run on 2026-10-22 with its configuration selected per direction on validation (server: *_t3a.py). Its
+# summary differs from the original only in the heatmap18 row and adds paper_t3a (published setting, Appendix D);
+# its bootstrap files differ only in the comparisons and de-duplicated APs that involve heatmap18.
+T3D = os.path.join(RES, "t3a_2026-10-22")
+_T3 = json.load(open(os.path.join(T3D, "reviewer_summary_t3a.json"), encoding="utf-8"))["rows"]
+R["heatmap18"], R["paper_t3a"] = _T3["heatmap18"], _T3["paper_t3a"]
+from tabdata import rows as _qrows  # noqa: E402  (views per image of the selected T^3A runs: 16 or 18 per direction)
+R["heatmap18"]["views"] = _qrows("heart4cc_frcnn")["Senior heatmap fusion (18 views)"]["views"]
 FP = json.load(open(os.path.join(RES, "firstpass_analysis.json"), encoding="utf-8"))
-BOOT = {d: json.load(open(os.path.join(RES, f"cluster_bootstrap_{d}.json"), encoding="utf-8")) for d in ("4c", "abdomen", "spine")}
+BOOT = {d: json.load(open(os.path.join(T3D, f"cluster_bootstrap_{d}_t3a.json"), encoding="utf-8")) for d in ("4c", "abdomen", "spine")}
 TIM = json.load(open(os.path.join(RES, "timing.json"), encoding="utf-8")) if os.path.exists(os.path.join(RES, "timing.json")) else {}
 # the uncertainty-aware runs live in their own collection; the quadrature configuration is the one
 # reported as TAC-7, so it is merged into the main row dict for every table that references it
@@ -192,8 +200,10 @@ write("tab_bootstrap.tex", L)
 
 # ------------------------------------------------------------------ E. published defaults
 L = []
-for m, lab in [("iouf", "IoU-Filter"), ("amrod", "AMROD"), ("whw", "WHW"), ("cdb", "CD-Buffer"), ("sgp", "SGP"), ("osfda", "O-SFDA"), ("vlod", "VLOD-TTA"), ("buftta", "BufferTTA")]:
-    p, b = R.get(f"paper_{m}"), R.get(f"bl_{m}")
+for m, lab in [("iouf", "IoU-Filter"), ("amrod", "AMROD"), ("whw", "WHW"), ("cdb", "CD-Buffer"), ("sgp", "SGP"), ("osfda", "O-SFDA"), ("vlod", "VLOD-TTA"), ("buftta", "BufferTTA"), ("t3a", "T$^3$A")]:
+    p, b = R.get(f"paper_{m}"), R.get("heatmap18" if m == "t3a" else f"bl_{m}")
+    if m == "t3a":
+        L.append("\\midrule")
     if p:
         L.append(f"{lab} & {fm(p)} & {fd(p, src)} & {fm(b)} & {fd(p, b)} \\\\"); NUM[f"default::{m}"] = {"paper": p["mean"], "selected": b["mean"], "d_src": list(paired(p, src)), "d_sel": list(paired(p, b))}
     else:
