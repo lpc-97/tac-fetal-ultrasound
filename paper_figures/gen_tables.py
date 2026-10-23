@@ -225,7 +225,9 @@ for name, T, hdr in [("rt", RT, ["c1$\\to$c2", "c1$\\to$c3", "c2$\\to$c1", "c2$\
     L = ["\\midrule".join([]) ]
     L = []
     _present = [(lab, views, {"rt": krt, "abdomen": kab, "spine": ksp}[name]) for lab, views, upd, krt, kab, ksp, grp in OTH]
-    _present = [(lab, vf(T[k]["views"]) if k == T3K else views, k) for lab, views, k in _present if k is not None and k in T]
+    # T^3A and the second round report their own mean view count in each setting
+    _present = [(lab, vf(T[k]["views"]) if k == T3K else (f"{T[k]['views']:.1f}" if k == "TAC (2 rounds)" else views), k)
+                for lab, views, k in _present if k is not None and k in T]
     _prow = [T[k] for _, _, k in _present]
     _bdir = [argbest([r["dirs"][j] for r in _prow]) for j in range(6)]; _sdir = [argsecond([r["dirs"][j] for r in _prow]) for j in range(6)]
     _bmean, _b50 = argbest([r["mean"] for r in _prow]), argbest([r["ap50"] for r in _prow])
