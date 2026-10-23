@@ -141,20 +141,22 @@ write("tab_views.tex", L)
 # ------------------------------------------------------------------ F. uncertainty-guided view acquisition (UVA)
 UV = json.load(open(os.path.join(RES, "uncert_summary.json"), encoding="utf-8"))["test"] if os.path.exists(os.path.join(RES, "uncert_summary.json")) else {}
 if UV:
-    def urow(lab, key, ref, bold=False):
+    def urow(lab, key, ref, bold=False, bold50=False):
         r = UV[key] if key in UV else R[key]
         d = "--" if ref is None else fd(r, UV[ref] if ref in UV else R[ref])
         t = fm(r, bold)
         NUM[f"uva::{key}"] = {"mean": r["mean"], "std": r["std"], "views": r["views"], "d_ref": None if ref is None else list(paired(r, UV[ref] if ref in UV else R[ref]))}
         v = r["views"]; vs = f"{v:.0f}" if abs(v - round(v)) < 1e-9 else f"{v:.2f}"
-        return f"{lab} & {vs} & {t} & {r['ap50']:.2f} & {d} \\\\"
+        ap50 = f"\\textbf{{{r['ap50']:.2f}}}" if bold50 else f"{r['ap50']:.2f}"
+        return f"{lab} & {vs} & {t} & {ap50} & {d} \\\\"
     _UR = [("\\tac-3 (no bracket)", "tac", None), ("\\quad fixed bracket $\\pm15\\%$ (control)", "tac_v7", "tac"),
            ("\\tac-11, fixed bracket", "tac_v11", "tac_v7"), None,
            ("\\tac-7, quadrature (ours)", "u7_k17", "tac_v7"), ("UVA, gated ($\\tau_s=0.08$)", "ua_t08", "tac_v7"),
            ("UVA, gated ($\\tau_s=0.12$)", "ua_t12", "tac")]
     _uv = [((UV[k] if k in UV else R[k])["mean"] if row else None) for row in _UR for k in [row[1] if row else None]]
     _ub = argbest(_uv)
-    L = [("\\midrule" if row is None else urow(row[0], row[1], row[2], i in _ub)) for i, row in enumerate(_UR)]
+    _ub50 = argbest([((UV[k] if k in UV else R[k])["ap50"] if row else None) for row in _UR for k in [row[1] if row else None]])
+    L = [("\\midrule" if row is None else urow(row[0], row[1], row[2], i in _ub, i in _ub50)) for i, row in enumerate(_UR)]
     write("tab_uva.tex", L)
     # gated runs: share of images bracketed (each bracketed image costs four more passes than TAC-3) and the
     # share of the gain of full quadrature acquisition (TAC-7) that a gated run keeps

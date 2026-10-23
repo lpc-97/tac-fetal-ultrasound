@@ -58,6 +58,35 @@ out["per_structure_gains_t3a"] = {dsn: {k.split(":")[-1]: round(d["heat"][k]["AP
                                   for dsn, d in PH.items()}
 out["n_structures_total"] = sum(v["n_structures"] for v in ps.values())
 out["n_structures_negative"] = sum(v["n_negative"] for v in ps.values())
+# quantities quoted in the text whose only earlier record was a run log or a raw result file (traced 2026-10-22)
+RES = os.path.join(HERE, "..", "..", "results")
+QC = json.load(open(os.path.join(RES, "qc_collect_2026-09-18.json"), encoding="utf-8"))
+PROV = os.path.join(RES, "reviewer", "provenance_2026-10-22")
+aux = {}
+# second round: share of test images on which it is triggered (each trigger adds two passes), pooled over cells
+for t in ("heart4cc_frcnn", "heart4cc_retinanet", "abdomen", "spine"):
+    c = QC["tables"][t]["TAC (2 rounds)"].values()
+    aux[f"round2_trigger_pct::{t}"] = round(100 * sum((x["views"] - 3) / 2 * x["n_img"] for x in c) / sum(x["n_img"] for x in c), 1)
+# per-structure log-size standard deviations of the heart priors
+sig = [v["logsize_std"] for p in ("c1", "c2", "c3")
+       for v in json.load(open(os.path.join(RES, "paper_aux", f"anat_prior_{p}.json"), encoding="utf-8"))["canonical_at_800"].values()]
+aux["prior_sigma_range_heart"] = [round(min(sig), 2), round(max(sig), 2)]
+# mean validation AP over the six heart directions of the frozen-BN and the BN source models (Appendix E)
+srconly = [e["AP"] for e in QC["val_sweeps"]["4c"] if e["folder"] == "scalesel" and e["variant"] == "srconly"]
+aux["val_source_frozenbn"] = round(sum(srconly) / len(srconly), 2)
+SW = json.load(open(os.path.join(RES, "sweep_best_lr_2026-09-09.json"), encoding="utf-8"))
+bn = {k.split("_", 1)[1]: v["src_val_AP"] for k, v in SW.items()}
+aux["val_source_bn"] = round(sum(bn.values()) / len(bn), 2)
+# median inferred factors of the TAC runs on the abdomen and the spine (server canon_stats.json, copied)
+fm = json.load(open(os.path.join(PROV, "f_median_abdomen_spine_tac_runs.json"), encoding="utf-8"))
+aux["f_median_range_abdomen_spine"] = [round(min(fm.values()), 2), round(max(fm.values()), 2)]
+# largest per-image factor of the TAC-3 timing run (c1->c2, seed 42) and O-SFDA key frames with its published setting
+tf = json.load(open(os.path.join(PROV, "timing_tac3_canon_factors.json"), encoding="utf-8"))["factors"]
+tf = [x[0] if isinstance(x, list) else x for x in (tf.values() if isinstance(tf, dict) else tf)]
+aux["timing_tac3_max_factor"] = round(max(tf), 2)
+os_ = json.load(open(os.path.join(PROV, "osfda_paper_s42_c1_to_c2_test_stats.json"), encoding="utf-8"))
+aux["osfda_paper_c1c2_key_frames"] = [int(os_["key_frames"]), int(os_["n_img"])]
+out["provenance_aux"] = aux
 json.dump(out, open(os.path.join(T, "numbers_gap.json"), "w"), indent=1)
 for k, v in out.items():
     if k not in ("per_structure_gains", "per_structure_gains_t3a"):
