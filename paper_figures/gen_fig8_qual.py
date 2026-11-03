@@ -1,7 +1,8 @@
 """Fig. 8 - qualitative results (seed 42, test): ground truth, source detector at the default scale, TAC-3 with two rounds.
 One example per setting, chosen among the images with the largest inferred scale factor. Data: samples/qual_examples_s42.json
 (boxes dumped from the saved detections) and the corresponding test images. Box labels are placed greedily so that they do not
-overlap each other (candidate positions: above-left, inside top-left, below-left, above-right of the box)."""
+overlap each other (candidate positions: above-left, inside top-left, below-left, above-right of the box, then positions slid
+along the box edges); when every candidate collides, the one with the smallest overlap area is used."""
 import json
 import os
 import numpy as np
@@ -25,6 +26,11 @@ def crop_box(ex, pad=0.07):
     return cx - s / 2, cy - s / 2, s
 
 
+def overlap_area(a, b):
+    """area of the intersection of two display-space bounding boxes (0 when disjoint)"""
+    return max(0.0, min(a.x1, b.x1) - max(a.x0, b.x0)) * max(0.0, min(a.y1, b.y1) - max(a.y0, b.y0))
+
+
 def place_labels(ax, boxes, names, kind):
     """draw one label per box, trying several anchor positions until it overlaps no previously placed label"""
     placed = []
@@ -39,15 +45,19 @@ def place_labels(ax, boxes, names, kind):
         cands += [((x + 1, y + 1 + k * step), "top", "left") for k in range(1, 8)]
         cands += [((x + w - 1, y + 1 + k * step), "top", "right") for k in range(1, 8)]
         cands += [((x + 1 + k * w / 6.0, y - 1), "bottom", "left") for k in range(1, 6)]
-        t = None
+        t = None; best = None
         for (px, py), va, ha in cands:
-            t = ax.text(px, py, lab, fontsize=5.5, color="white", va=va, ha=ha, bbox=dict(facecolor=col, edgecolor="none", pad=0.2, alpha=0.9), zorder=5)
+            t = ax.text(px, py, lab, fontsize=6.3, color="white", va=va, ha=ha, bbox=dict(facecolor=col, edgecolor="none", pad=0.15, alpha=0.9), zorder=5)
             bb = t.get_window_extent(renderer).expanded(1.02, 1.06)
-            if not any(bb.overlaps(q) for q in placed):
+            ov = sum(overlap_area(bb, q) for q in placed)
+            if ov == 0:
                 placed.append(bb); break
+            if best is None or ov < best[0]:
+                best = (ov, (px, py), va, ha)
             t.remove(); t = None
-        if t is None:  # every candidate collides: fall back to the default position
-            t = ax.text(x + 1, y - 1, lab, fontsize=5.5, color="white", va="bottom", ha="left", bbox=dict(facecolor=col, edgecolor="none", pad=0.25, alpha=0.88), zorder=5)
+        if t is None:  # every candidate collides: take the candidate with the smallest overlap area
+            _, (px, py), va, ha = best
+            t = ax.text(px, py, lab, fontsize=6.3, color="white", va=va, ha=ha, bbox=dict(facecolor=col, edgecolor="none", pad=0.15, alpha=0.88), zorder=5)
             placed.append(t.get_window_extent(renderer))
 
 

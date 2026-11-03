@@ -25,8 +25,8 @@ for ax, (dsn, title) in zip(axes, SETS):
         ax.text(x[i], -0.9, f"{src_ap[i]:.0f}", ha="center", va="top", fontsize=7, color=C["ink2"])
     ax.set_ylim(-2.4, 14.5)  # headroom keeps the legend off the bars
     ax.set_xlabel("structure (gray: source AP)", fontsize=7, labelpad=2)
-axes[0].set_ylabel("Δ AP vs. source (%)")
-axes[0].legend(loc="upper left", fontsize=7, handlelength=1.0, ncol=1)
+axes[0].set_ylabel("ΔAP vs. source")
+axes[0].legend(loc="upper right", fontsize=7, handlelength=1.0, ncol=1, frameon=False)
 for i, ax in enumerate(axes):
     panel_label(ax, f"({chr(97 + i)})", x=-0.1 if i == 0 else -0.06, y=1.16)
 save(fig, "fig6_perclass")

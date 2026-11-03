@@ -86,6 +86,24 @@ tf = [x[0] if isinstance(x, list) else x for x in (tf.values() if isinstance(tf,
 aux["timing_tac3_max_factor"] = round(max(tf), 2)
 os_ = json.load(open(os.path.join(PROV, "osfda_paper_s42_c1_to_c2_test_stats.json"), encoding="utf-8"))
 aux["osfda_paper_c1c2_key_frames"] = [int(os_["key_frames"]), int(os_["n_img"])]
+# per-image harm analysis (server/perimage_harm.py) and the oracle factor of its two exported failure cases, computed from
+# their ground-truth boxes and the center-1 size prior exactly as the oracle of Section 3 (weights 1/sigma^2, no prior term)
+import math
+H = json.load(open(os.path.join(RES, "reviewer", "perimage_harm_4c.json"), encoding="utf-8"))
+aux["harm"] = {v: {k: o[k] for k in ("n", "pct_worse", "pct_same", "pct_better", "mean_delta_recall_pct")} for v, o in H["variants"].items()}
+aux["harm"]["tac3_pct_of_harmed_losing_one_structure"] = round(100 * H["variants"]["tac3"]["pct_worse_by_lost_structures"]["1"]
+                                                               / sum(H["variants"]["tac3"]["pct_worse_by_lost_structures"].values()), 1)
+aux["harm"]["by_candidates"] = {v: H["variants"][v]["by_first_pass_candidates"] for v in ("tac3", "tac7")}
+PRI = json.load(open(os.path.join(RES, "paper_aux", "anat_prior_c1.json"), encoding="utf-8"))["canonical_at_800"]
+FX = json.load(open(os.path.join(HERE, "samples", "fail", "fail_examples_s42.json"), encoding="utf-8"))
+fo = {}
+for k, ex in FX.items():
+    sc = 800 / min(ex["w"], ex["h"]); num = den = 0.0
+    for g in ex["gt"]:
+        z = math.log(math.sqrt(g["bbox"][2] * sc * g["bbox"][3] * sc)); c = PRI[str(g["cat"] - 1)]
+        num += (c["logsize_mean"] - z) / c["logsize_std"] ** 2; den += 1 / c["logsize_std"] ** 2
+    fo[k] = {"f_tac": round(ex["factor"][0], 2), "f_oracle": round(math.exp(num / den), 2), "recall_src": ex["recall_src"], "recall_tac": ex["recall_tac"], "n_gt": ex["n_gt"]}
+aux["fail_cases"] = fo
 out["provenance_aux"] = aux
 json.dump(out, open(os.path.join(T, "numbers_gap.json"), "w"), indent=1)
 for k, v in out.items():

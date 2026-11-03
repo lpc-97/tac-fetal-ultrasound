@@ -113,10 +113,11 @@ MAIN = [  # (row name in QC, label, views per image, parameters updated at test 
 def heart_block(T, spec, ref, ncol):
     """rows of one block of source models: bold best and underline second best per column, a group header whenever
     the group changes, the paired difference to the block's source model"""
-    rs = [T[k] for k, *_ in spec]
-    bd = [argbest([r["dirs"][j] for r in rs]) for j in range(6)]; sd = [argsecond([r["dirs"][j] for r in rs]) for j in range(6)]
-    bm, sm = argbest([r["mean"] for r in rs]), argsecond([r["mean"] for r in rs])
-    b5, s5 = argbest([r["ap50"] for r in rs]), argsecond([r["ap50"] for r in rs])
+    # the block's reference (source) row is excluded from bold/underline, like the in-domain row
+    rs = [None if k == ref else T[k] for k, *_ in spec]
+    bd = [argbest([r["dirs"][j] if r else None for r in rs]) for j in range(6)]; sd = [argsecond([r["dirs"][j] if r else None for r in rs]) for j in range(6)]
+    bm, sm = argbest([r["mean"] if r else None for r in rs]), argsecond([r["mean"] if r else None for r in rs])
+    b5, s5 = argbest([r["ap50"] if r else None for r in rs]), argsecond([r["ap50"] if r else None for r in rs])
     out, prev = [], None
     for i, (key, lab, views, upd, grp) in enumerate(spec):
         if grp != prev and grp in GROUP:

@@ -9,7 +9,7 @@ from tabdata import rows
 SETS = [("heart4cc_frcnn", "Heart-4CC, Faster R-CNN"), ("heart4cc_retinanet", "Heart-4CC, RetinaNet"), ("abdomen", "Abdomen, Faster R-CNN"), ("spine", "Spine, Faster R-CNN")]
 # name in table -> (label, views, marker, colour, trains?)
 SPEC = [
-    ("Source-only (FrozenBN)", "source", 1, "o", C["ink"], False), ("RetinaNet source-only", "source", 1, "o", C["ink"], False),
+    ("Source-only (FrozenBN)", "source model", 1, "o", C["ink"], False), ("RetinaNet source-only", "source model", 1, "o", C["ink"], False),
     # the eight single-view parameter-adaptive methods share one marker: at one forward pass they overlap, and the
     # tables give them individually
     *[(k, "single-view TTA (8 methods)", 1, "s", C["lgray"], True) for k in
@@ -17,7 +17,7 @@ SPEC = [
     ("Senior heatmap fusion (18 views)", "T$^3$A", None, "h", C["gold"], False),  # mean of 16 / 18 views over the directions
     ("18-view WBF", "18-view WBF", 18, "p", C["cyan"], False), ("18-view WBF + AR", "18-view WBF + re-scoring", 18, "H", C["teal"], False),
     ("CoTTA-det", "CoTTA-det (18 views + training)", 18, "d", C["blue"], True),
-    ("TAC-light", "TAC-3 (ours)", 3.0, "o", OURS, False), ("TAC (2 rounds)", "TAC-3, 2 rounds (ours)", None, "D", OURS, False), ("TAC 7 views (quadrature)", "TAC-7 (ours)", 7.0, "*", OURS, False),
+    ("TAC-light", "TAC-3 (ours)", 3.0, "o", OURS, False), ("TAC (2 rounds)", "TAC-3, 2 rounds (3.3 views, ours)", None, "D", OURS, False), ("TAC 7 views (quadrature)", "TAC-7 (ours)", 7.0, "*", OURS, False),
 ]
 fig, axes = plt.subplots(1, 4, figsize=(6.9, 2.6), gridspec_kw={"wspace": 0.3})
 seen = {}

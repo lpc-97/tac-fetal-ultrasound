@@ -32,9 +32,10 @@ fig, axes = plt.subplots(1, 2, figsize=(6.9, 2.7), gridspec_kw={"width_ratios": 
 
 # ---------------------------------------------------------------- (a) waterfall
 ax = axes[0]
-COL = {"ANI": OURS, "UVA": C["teal"], "SDF": C["sky"] if "sky" in C else C["blue"]}
+COL = {"ANI": "#2A7F77", "UVA": "#2F6DA3", "SDF": "#B0601C"}  # module colours of the overview figure (gen_fig2_overview.MOD)
+Y0 = 46.0  # axis floor; the source bar is drawn from it, and the right axis then carries no negative tick
 x = np.arange(len(steps))
-ax.bar(0, steps[0][1] - 44, 0.62, bottom=44, color=C["gray"])
+ax.bar(0, steps[0][1] - Y0, 0.62, bottom=Y0, color=C["gray"])
 ax.text(0, steps[0][1] + 0.12, f"{steps[0][1]:.2f}", ha="center", va="bottom", fontsize=7, color=C["ink"])
 prev = steps[0][1]
 for i, (lab, val, mod) in enumerate(steps[1:], start=1):
@@ -46,9 +47,9 @@ for i, (lab, val, mod) in enumerate(steps[1:], start=1):
 ax.axhline(ind, color=C["ink2"], lw=0.8, ls="--")
 ax.text(len(steps) - 0.5, ind - 0.35, f"in-domain {ind:.2f}", ha="right", va="top", fontsize=7, color=C["ink2"])
 ax.set_xticks(x); ax.set_xticklabels([s[0] for s in steps], fontsize=7)
-ax.set_ylim(44, 61.6); ax.set_ylabel("mean AP (%)")
+ax.set_ylim(Y0, 61.6); ax.set_ylabel("mean AP (%)")
 ax2 = ax.twinx(); ax2.grid(False)
-ax2.set_ylim((44 - src) / gap * 100, (61.6 - src) / gap * 100)
+ax2.set_ylim((Y0 - src) / gap * 100, (61.6 - src) / gap * 100)
 ax2.set_ylabel("cross-center loss closed (%)", fontsize=7); ax2.tick_params(axis="y", labelsize=7)
 from matplotlib.patches import Patch
 ax.legend(handles=[Patch(facecolor=COL["ANI"], label="ANI"), Patch(facecolor=COL["SDF"], label="SDF"), Patch(facecolor=COL["UVA"], label="UVA")],

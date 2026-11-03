@@ -20,15 +20,19 @@ fig, axes = plt.subplots(1, 4, figsize=(6.9, 2.62), gridspec_kw={"width_ratios":
 ax = axes[0]
 labs = ["default", "val-sel.", "stream", "TAC", "oracle"]  # spelled out in the caption
 k1 = ["source", "fac_valscale_1v", "fac_global_1v", "tac_1v", "fac_oracle_1v"]; k3 = [None, "fac_valscale", "fac_global", "tac", "fac_oracle"]
-x = np.arange(5); w = 0.36
-v1 = [R[k]["mean"] for k in k1]; e1 = [R[k]["std"] for k in k1]
-ax.bar(x - w / 2, v1, w, color=[BASE, BASE, BASE, OURS, C["teal"]], yerr=e1, error_kw=dict(lw=0.5, capsize=1.5, ecolor=C["ink2"]), label="single view")
-v3 = [R[k]["mean"] if k else np.nan for k in k3]; e3 = [R[k]["std"] if k else 0 for k in k3]
-ax.bar(x + w / 2, v3, w, color=[BASE, BASE, BASE, OURS, C["teal"]], yerr=e3, error_kw=dict(lw=0.5, capsize=1.5, ecolor=C["ink2"]), hatch="////", edgecolor="white", label="TAC-3 pipeline (3 views)")
-# bar values are given in the scale-chain table, so the bars carry no labels
-ax.set_xticks(x); ax.set_xticklabels(labs, fontsize=7, rotation=30, ha="right", rotation_mode="anchor"); ax.set_ylim(45, 57); ax.set_ylabel("mean AP (%)")
-from matplotlib.patches import Patch
-ax.legend(handles=[Patch(facecolor=C["gray"], label="single view"), Patch(facecolor=C["gray"], hatch="////", edgecolor="white", label="TAC-3 pipeline")], loc="upper left", fontsize=7, handlelength=1.4)
+x = np.arange(5); w = 0.18
+# dot-and-error-bar plot (the axis starts at 45, so bars would exaggerate the differences): filled marker = single view,
+# open marker = the same factor inside the TAC-3 pipeline; the values are given in the scale-chain table
+cols = [C["gray"], C["gray"], C["gray"], OURS, C["teal"]]
+for i, (a, c) in enumerate(zip(k1, k3)):
+    ax.errorbar(x[i] - w, R[a]["mean"], yerr=R[a]["std"], color=cols[i], marker="o", ms=4.5, mfc=cols[i], mec=cols[i], ls="none", elinewidth=0.6, capsize=1.5, zorder=4)
+    if c:
+        ax.errorbar(x[i] + w, R[c]["mean"], yerr=R[c]["std"], color=cols[i], marker="o", ms=4.5, mfc="white", mec=cols[i], mew=1.0, ls="none", elinewidth=0.6, capsize=1.5, zorder=4)
+ax.set_xticks(x); ax.set_xticklabels(labs, fontsize=7, rotation=30, ha="right", rotation_mode="anchor"); ax.set_ylim(45, 57); ax.set_xlim(-0.6, 4.6); ax.set_ylabel("mean AP (%)")
+from matplotlib.lines import Line2D
+ax.legend(handles=[Line2D([], [], marker="o", color=C["gray"], mfc=C["gray"], mec=C["gray"], ms=4.5, ls="none", label="single view"),
+                   Line2D([], [], marker="o", color=C["gray"], mfc="white", mec=C["gray"], mew=1.0, ms=4.5, ls="none", label="TAC-3 pipeline")],
+          loc="upper left", fontsize=7, handlelength=1.0, handletextpad=0.4, frameon=False)
 ax.set_xlabel("scale factor of the canonicalized view", fontsize=7)
 panel_label(ax, "(a)", x=-0.14, y=1.08)
 
@@ -41,7 +45,7 @@ ax.bar(x - w, src, w, color=C["gray"], label="source"); ax.bar(x, t7, w, color=O
 for i in range(4):
     ax.text(x[i], t7[i] + 0.6, f"+{t7[i] - src[i]:.1f}", ha="center", va="bottom", fontsize=7, color=OURS, fontweight="bold")
 ax.set_xticks(x); ax.set_xticklabels(xl, fontsize=7, rotation=28, ha="right", rotation_mode="anchor"); ax.set_xlabel("oracle scale shift $\\max(f^{\\star}, 1/f^{\\star})$", fontsize=7)
-ax.set_ylabel("AP on the group (%)"); ax.set_ylim(0, 84); ax.legend(loc="upper right", ncol=1, fontsize=7, handlelength=1.0, handletextpad=0.4, frameon=False)
+ax.set_ylabel("AP on the group (%)"); ax.set_ylim(0, 66)  # no legend: the legend of (c) lists every series drawn here (caption says so)
 panel_label(ax, "(b)", x=-0.22, y=1.08)
 
 # (c) first-pass candidates: AP and estimator error
@@ -50,7 +54,7 @@ keys = ["1-2", "3-5", ">5"]; xl = ["1–2", "3–5", ">5"]
 x = np.arange(3); w = 0.2
 for j, (k, lab, col) in enumerate([("source", "source", C["gray"]), ("tac3", "TAC-3", "#F4A261"), ("tac7", "TAC-7", OURS), ("oracle3", "TAC-3, oracle $f$", C["teal"])]):
     ax.bar(x + (j - 1.5) * w, [FP["ndet"][g][k] for g in keys], w, color=col, label=lab)
-ax.set_xticks(x); ax.set_xticklabels(xl, fontsize=7); ax.set_xlabel("first-pass candidates ($p_i \\geq 0.3$)", fontsize=7); ax.set_ylabel("AP on the group (%)"); ax.set_ylim(0, 84)
+ax.set_xticks(x); ax.set_xticklabels(xl, fontsize=7); ax.set_xlabel("first-pass candidates ($p_i \\geq 0.3$)", fontsize=7); ax.set_ylabel("AP on the group (%)"); ax.set_ylim(0, 66)
 ax.legend(loc="upper left", fontsize=7, handlelength=1.0, handletextpad=0.4, frameon=False)
 panel_label(ax, "(c)", x=-0.22, y=1.08)
 

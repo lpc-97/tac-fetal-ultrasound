@@ -112,15 +112,25 @@ for i, (lab, k) in enumerate(_FA):
     r = F[k]; ap50 = f"\\textbf{{{r['ap50']:.2f}}}" if i in _b5 else f"{r['ap50']:.2f}"
     L.append(f"{lab} & 3 & {fm(r, i in _ba)} & {ap50} & {'--' if k == F3 else fd(r, F[F3])} & & \\\\")
 L += ["\\midrule", "\\multicolumn{7}{l}{\\textit{(b) Number of views and blind ensembles at equal compute}}\\\\"]
+# reviewer controls of 2026-11-01 (results/reviewer/controls_2026-11-01.json, server/collect_controls.py): prior-free per-image
+# scale selection by detector self-confidence over 3 or 7 scales (the most confident view is output alone)
+_CTRL = os.path.join(RES, "controls_2026-11-01.json")
+if os.path.exists(_CTRL):
+    for _k, _v in json.load(open(_CTRL, encoding="utf-8"))["rows"].items():
+        R.setdefault(_k, _v)
 _BL = [  # (label, row, collection, reference, timing key, compute block)
     ("pass 1 + canonical view (no flip)", "TAC 2 views (no flip)", F, F3, None, 3),
     ("blind: 3 scales \\{600, 800, 1000\\}, WBF", "ss_fix3_wbf", R, "tac", None, 3), ("blind: 3 scales, WBF + re-scoring", "ss_fix3_wbf_ar", R, "tac", "blind3_ar", 3),
+    ("most confident of 3 scales (1 view output)", "ss_conf3", R, "tac", None, 3),
     ("\\tac-3 (ours)", "tac", R, None, "tac3", 3), ("\\tac-3, 2 rounds (ours)", "tac_rounds2", R, "tac", "tac3_2r", 3),
     ("blind: 3 scales $\\times$ flip, WBF + re-scoring", "ss_fix3f_wbf_ar", R, "u7_k17", None, 7),
     ("blind: 7 scales \\{500--1200\\}, WBF", "ss_fix7_wbf", R, "u7_k17", None, 7), ("blind: 7 scales, WBF + re-scoring", "ss_fix7_wbf_ar", R, "u7_k17", "blind7_ar", 7),
-    ("\\tac, fixed bracket $\\pm15\\%$ (control)", "tac_v7", R, "u7_k17", None, 7), ("\\tac-7 (ours)", "u7_k17", R, None, "tac7", 7),
+    ("most confident of 7 scales (1 view output)", "ss_conf7", R, "u7_k17", None, 7),
+    ("\\tac, fixed bracket $\\pm15\\%$ (control)", "tac_v7", R, "u7_k17", None, 7),
+    ("\\tac-7 (ours)", "u7_k17", R, None, "tac7", 7),
     ("\\tac-11, fixed bracket", "tac_v11", R, "u7_k17", "tac11", 18),
     ("18-view WBF + re-scoring", "ss_all_flip_wbf_ar", R, "u7_k17", "wbf18_ar", 18), ("T$^3$A~\\cite{pu2026t3a}", "heatmap18", R, "u7_k17", "heatmap18", 18)]
+_BL = [row for row in _BL if row[1] in row[2]]  # controls appear once their result file is present
 _bb = {}
 for blk in (3, 7, 18):
     idx = [i for i, row in enumerate(_BL) if row[5] == blk]
@@ -128,6 +138,8 @@ for blk in (3, 7, 18):
     for j, i in enumerate(idx):
         _bb[i] = (j in bm, j in b5)
 for i, (lab, k, T, ref, tk, blk) in enumerate(_BL):
+    if i and blk != _BL[i - 1][5]:
+        L.append("\\midrule")  # separates the three compute budgets (3 / 7 / 18 passes)
     r = T[k]; v = r["views"] if r["views"] else 18; sp, mem = tcell(tk)
     ap50 = f"\\textbf{{{r['ap50']:.2f}}}" if _bb[i][1] else f"{r['ap50']:.2f}"
     L.append(f"{lab} & {vstr(v)} & {fm(r, _bb[i][0])} & {ap50} & {'--' if ref is None else fd(r, T[ref])} & {sp} & {mem} \\\\")
@@ -141,14 +153,18 @@ write("tab_views.tex", L)
 # ------------------------------------------------------------------ F. uncertainty-guided view acquisition (UVA)
 UV = json.load(open(os.path.join(RES, "uncert_summary.json"), encoding="utf-8"))["test"] if os.path.exists(os.path.join(RES, "uncert_summary.json")) else {}
 if UV:
+    _get = (lambda k: UV[k] if k in UV else R[k])
+
     def urow(lab, key, ref, bold=False, bold50=False):
-        r = UV[key] if key in UV else R[key]
-        d = "--" if ref is None else fd(r, UV[ref] if ref in UV else R[ref])
+        r = _get(key)
+        # two difference columns: to TAC-3 (no bracket) and to the fixed +-15% bracket; "ref" is kept for numbers_reviewer.json
+        d3 = "--" if key == "tac" else fd(r, _get("tac")); d7 = "--" if key == "tac_v7" else fd(r, _get("tac_v7"))
         t = fm(r, bold)
-        NUM[f"uva::{key}"] = {"mean": r["mean"], "std": r["std"], "views": r["views"], "d_ref": None if ref is None else list(paired(r, UV[ref] if ref in UV else R[ref]))}
+        NUM[f"uva::{key}"] = {"mean": r["mean"], "std": r["std"], "views": r["views"], "d_ref": None if ref is None else list(paired(r, _get(ref))),
+                              "d_tac3": None if key == "tac" else list(paired(r, _get("tac"))), "d_fixed7": None if key == "tac_v7" else list(paired(r, _get("tac_v7")))}
         v = r["views"]; vs = f"{v:.0f}" if abs(v - round(v)) < 1e-9 else f"{v:.2f}"
         ap50 = f"\\textbf{{{r['ap50']:.2f}}}" if bold50 else f"{r['ap50']:.2f}"
-        return f"{lab} & {vs} & {t} & {ap50} & {d} \\\\"
+        return f"{lab} & {vs} & {t} & {ap50} & {d3} & {d7} \\\\"
     _UR = [("\\tac-3 (no bracket)", "tac", None), ("\\quad fixed bracket $\\pm15\\%$ (control)", "tac_v7", "tac"),
            ("\\tac-11, fixed bracket", "tac_v11", "tac_v7"), None,
            ("\\tac-7, quadrature (ours)", "u7_k17", "tac_v7"), ("UVA, gated ($\\tau_s=0.08$)", "ua_t08", "tac_v7"),
@@ -160,7 +176,6 @@ if UV:
     write("tab_uva.tex", L)
     # gated runs: share of images bracketed (each bracketed image costs four more passes than TAC-3) and the
     # share of the gain of full quadrature acquisition (TAC-7) that a gated run keeps
-    _get = (lambda k: UV[k] if k in UV else R[k])
     _g7 = _get("u7_k17")["mean"] - _get("tac")["mean"]
     for _k in ("ua_t08", "ua_t12"):
         _r = _get(_k)
@@ -193,7 +208,8 @@ if LD:
     L = []
     for lab, r in LD["bins"].items():
         nice = {"most deviant (lowest 10%)": "most atypical (lowest 10\\%)", "10-25%": "10--25\\%", "25-50%": "25--50\\%", "typical (top 50%)": "typical (top 50\\%)"}[lab]
-        L.append(f"{nice} & {r['n_images']} & {r['source']:.2f} & {r['tac3']:.2f} & {r['tac3_noar']:.2f} & {r['tac7']:.2f} & {r['tac3_minus_source']:+.2f} & {r['rescoring_effect']:+.2f} \\\\")
+        # subset AP with one decimal, as in the first-pass table; the differences keep two
+        L.append(f"{nice} & {r['n_images']} & {r['source']:.1f} & {r['tac3']:.1f} & {r['tac3_noar']:.1f} & {r['tac7']:.1f} & {r['tac3_minus_source']:+.2f} & {r['rescoring_effect']:+.2f} \\\\")
         NUM[f"layout::{lab}"] = r
     write("tab_layout.tex", L)
     NUM["layout::n_scored"] = LD["n_images_scored"]
@@ -272,7 +288,7 @@ if UQ:
     L = []
     for lab, v in UQ["bins"].items():
         nice = lab.replace("Q1 (narrowest)", "Q1 (narrowest $s$)").replace("Q4 (widest)", "Q4 (widest $s$)")
-        L.append("%s & %d & %.3f & %.1f & %.3f & %.2f & %.2f & %.2f & %+.2f \\\\" % (
+        L.append("%s & %d & %.3f & %.1f & %.3f & %.1f & %.1f & %.1f & %+.2f \\\\" % (  # subset AP with one decimal
             nice, v["n_images"], v["mean_s"], v["mean_ndet"], v["mean_abs_log_err"],
             v["source"], v["tac3"], v["tac7"], v["delta_tac7_tac3"]))
     write("tab_uvaq.tex", L)

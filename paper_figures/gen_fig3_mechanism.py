@@ -4,21 +4,21 @@ per cross-center direction, with the total-variation distance to the source hist
 (bottom) per-image scale factors inferred by TAC (seed 42). Data: results/fpn_levels_s42_2026-09-14.json, paper_aux/fpn_levels_s4{3,4}.json."""
 import numpy as np
 import matplotlib.pyplot as plt
-from pubstyle import C, load, load_aux, save
+from pubstyle import C, OURS, load, load_aux, save
 
 D = {"42": load("fpn_levels_s42_2026-09-14.json"), "43": load_aux("fpn_levels_s43.json"), "44": load_aux("fpn_levels_s44.json")}
 DIRS = ["c1_to_c2", "c1_to_c3", "c2_to_c1", "c2_to_c3", "c3_to_c1", "c3_to_c2"]
 LEVELS = ["2", "3", "4", "5"]
-C_SRC, C_T800, C_TAC = C["blue"], C["orange"], C["cyan"]
+C_SRC, C_T800, C_TAC = C["blue"], C["orange"], OURS  # "ours" is coral in every figure
 
 fig, axes = plt.subplots(2, 6, figsize=(6.9, 2.9), gridspec_kw={"height_ratios": [1.15, 1.0], "hspace": 0.62, "wspace": 0.3})
-w = 0.27
+w = 0.27; hmax = 0
 for j, d in enumerate(DIRS):
     r = D["42"][d]; ax = axes[0, j]; x = np.arange(4)
     hs = [r["source_train"][l] * 100 for l in LEVELS]; ht = [r["target_800"][l] * 100 for l in LEVELS]
     hc = np.mean([[D[s][d]["target_tac"][l] * 100 for l in LEVELS] for s in D], axis=0)
-    ax.bar(x - w, hs, w, color=C_SRC, lw=0, label="source train @ $s_0$")
-    ax.bar(x, ht, w, color=C_T800, lw=0, label="target test @ default 800")
+    ax.bar(x - w, hs, w, color=C_SRC, lw=0, label="source train at $s_0$")
+    ax.bar(x, ht, w, color=C_T800, lw=0, label="target test at 800")
     ax.bar(x + w, hc, w, color=C_TAC, lw=0, hatch="////", edgecolor="white", label="target test after TAC")
     ax.set_xticks(x); ax.set_xticklabels([f"P{l}" for l in LEVELS], fontsize=7); ax.set_ylim(0, 100); ax.set_yticks([0, 50, 100])
     a, b = d.split("_to_"); ax.set_title(f"{a} → {b}", pad=3)
@@ -28,7 +28,7 @@ for j, d in enumerate(DIRS):
         ax.set_ylabel("GT objects per\nFPN level (%)", fontsize=7)
     ax2 = axes[1, j]
     f = np.asarray(r["factors"]); lf = np.log2(np.clip(f, 0.25, 4))
-    ax2.hist(lf, bins=np.linspace(-2, 2, 33), color=C_TAC, lw=0)
+    cnt, _, _ = ax2.hist(lf, bins=np.linspace(-2, 2, 33), color=C_TAC, lw=0); hmax = max(hmax, cnt.max())
     ax2.axvline(0, color=C["ink2"], lw=0.7, ls="--")
     med = float(np.median(f)); p10, p90 = np.percentile(f, 10), np.percentile(f, 90)
     ax2.set_title(f"{med:.2f} [{p10:.2f}, {p90:.2f}]", fontsize=7, pad=2, fontweight="normal", color=C["ink2"])
@@ -36,6 +36,9 @@ for j, d in enumerate(DIRS):
     ax2.set_xlabel("scale factor $f$", fontsize=7, labelpad=1)
     if j == 0:
         ax2.set_ylabel("test images", fontsize=7)
+ytop = int(np.ceil(hmax / 10.0) * 10)  # one shared count axis for the six histograms
+for ax2 in axes[1]:
+    ax2.set_ylim(0, ytop)
 h, l = axes[0, 0].get_legend_handles_labels()
 fig.legend(h, l, loc="upper center", ncol=3, frameon=False, fontsize=7, bbox_to_anchor=(0.5, 1.03))
 save(fig, "fig3_mechanism")

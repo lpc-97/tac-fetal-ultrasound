@@ -38,9 +38,9 @@ for i, d in enumerate(dirs):
     k = int(np.argmax(ap)); ax.plot(s[k], ap[k], marker=MARK[i], markersize=6.5, color=cols[i], markeredgecolor="black", markeredgewidth=0.6, zorder=5)
 ax.axvline(800, color=C["ink2"], lw=0.8, ls="--"); ax.text(785, 8, "default\nscale 800", fontsize=7, color=C["ink2"], va="bottom", ha="right")
 ax.set_xlabel("test-time short-edge scale (px)"); ax.set_ylabel("AP on target val (%)")
-ax.set_xticks([300, 500, 700, 900, 1200]); ax.set_ylim(5, 92)  # headroom keeps the legend off the curves
-ax.legend(ncol=2, loc="upper left", fontsize=7, handlelength=1.3, columnspacing=0.7, bbox_to_anchor=(-0.02, 1.03),
-          frameon=True, framealpha=1, edgecolor="none")
+ax.set_xticks([300, 500, 700, 900, 1200]); ax.set_ylim(0, 68)
+# the curves fill the panel, so the legend sits below the x-axis label
+ax.legend(ncol=3, loc="upper center", fontsize=7, handlelength=1.3, columnspacing=0.8, handletextpad=0.4, bbox_to_anchor=(0.5, -0.3), frameon=False)
 panel_label(ax, "(b)")
 
 # (c) per-image scale factors (TAC, seed 42, test): histograms of log2 f for three directions
@@ -48,7 +48,7 @@ ax = axes[2]
 bins = np.linspace(-1.5, 2.0, 36)
 for d, col, lab in [("c1_to_c2", C["blue"], "c1→c2"), ("c3_to_c2", C["gold"], "c3→c2"), ("c1_to_c3", C["sky"], "c1→c3")]:
     f = np.asarray(fac[f"tacr2_s42_{d}_test"]["f"]); lf = np.log2(np.clip(f, 0.25, 4))
-    ax.hist(lf, bins=bins, color=col, alpha=0.75, lw=0, label=f"{lab}  (median f = {np.median(f):.2f})")
+    ax.hist(lf, bins=bins, color=col, alpha=0.75, lw=0, label=f"{lab}  (median $f$ = {np.median(f):.2f})")
 ax.axvline(0, color=C["ink2"], lw=0.8, ls="--")
 ax.set_xticks([-1, 0, 1, 2]); ax.set_xticklabels(["½", "1", "2", "4"])
 ax.set_xlabel("per-image scale factor $f$ (log axis)"); ax.set_ylabel("test images")
