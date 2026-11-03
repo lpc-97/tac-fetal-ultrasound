@@ -17,7 +17,7 @@ class AnatRescorer:
         self.p = prior
         self.lam, self.gamma, self.max_cand, self.min_score = lam, gamma, max_cand, min_score
         pct = prior.thr  # 5th percentile of per-box mean pair log-density on source train
-        # squash: log-density above the source median -> ~1, at the 5th percentile -> ~0.5, far below -> 0
+        # squash: affine map of the mean pair log-density, 0 at the source 5th percentile, 1 three nats above it
         self.lo = pct
         self.hi = pct + 3.0
 

@@ -1,7 +1,7 @@
-# Faster re-implementation of the `gaussian_fusion` of T^3A (Pu et al., AAAI 2026; adapteacher/modeling/tta_aug.py,
-# not included here) that keeps the
-# heat-map construction bit-for-bit identical (same per-box expression, same sequential accumulation order) so the
-# peak set is identical; only the per-peak box weighting is batched (float-order differences ~1e-5 px).
+# Re-implementation of the Gaussian heat-map fusion of T^3A (Pu et al., AAAI 2026), whose own code
+# (adapteacher/modeling/tta_aug.py) is not included here. The heat map uses the same per-box expression and the same
+# accumulation order; the per-peak box weighting is batched, so fused box coordinates can differ from the reference
+# at the sub-pixel level. Used only for the three-view fusion-rule comparison of the paper.
 # Extra output field `support` = number of boxes contributing to each fused box.
 import torch
 import torch.nn.functional as F

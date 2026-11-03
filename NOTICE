@@ -36,8 +36,10 @@ Methods reimplemented for comparison
 The baselines reported in the paper were obtained either from their authors' code or by
 reimplementation, and the paper keeps the two apart. WHW and CD-Buffer were run from the authors'
 Apache-2.0 licensed releases. T^3A (Pu et al., AAAI 2026) was run with its authors' fusion code, which
-is not redistributed here; adapteacher/modeling/fusion_fast.py is a faster re-implementation of its
-heat-map fusion, used for the three-view fusion-rule comparison. The remaining published methods were
+is not redistributed here; adapteacher/modeling/fusion_fast.py is a re-implementation of its heat-map
+fusion rule, used only for the three-view fusion-rule comparison, and the 18-view T^3A rows of the paper
+were produced with the authors' code. The remaining published methods were
 reimplemented from their papers inside this codebase, because no code applicable to this detector was
-available; those reimplementations carry the deviations documented in the paper and in the scripts under
-runners/, and a gap against the authors' own implementations cannot be excluded.
+available; those reimplementations are not redistributed; their configurations and deviations are listed in the
+paper (Appendix E) and in the comments of runners/run_baselines.sh, and a gap against the authors' own
+implementations cannot be excluded.

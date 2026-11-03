@@ -31,9 +31,8 @@
     _C.SEMISUPNET.CANON.FACTOR_CONST = 0.0       # >0: constant factor for every image
     _C.SEMISUPNET.CANON.ADAPT = 'none'          # none | bracket | count (uncertainty-aware view acquisition from the posterior std of u)
     _C.SEMISUPNET.CANON.ADAPT_K = 1.732          # bracket half-width = K * posterior std (1.732: 3-point Gauss-Hermite nodes)
-    _C.SEMISUPNET.CANON.ADAPT_MIN = 0.0          # clip of the half-width (log units)
+    _C.SEMISUPNET.CANON.ADAPT_MIN = 0.15         # clip of the half-width (log units); 0.15 / 0.5 is the TAC-7 setting of the paper
     _C.SEMISUPNET.CANON.ADAPT_MAX = 0.5
     _C.SEMISUPNET.CANON.ADAPT_TAU = 0.1          # count mode: bracket views only if posterior std > TAU
     _C.SEMISUPNET.CANON.POST_WEIGHTS = False     # WBF view weights = quadrature weights (posterior-marginalised confidence)
     _C.SEMISUPNET.CANON.PASS1_WEIGHT = 0.25      # weight of the pass-1 view relative to a centre view
-    # ---- IoU-Filter (Ruan & Tang, CVPRW 2024) re-implementation, Trainer == 'iouf'

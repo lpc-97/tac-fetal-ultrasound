@@ -53,13 +53,23 @@ panel repeats the five beats on four real frames:
 
 The page is a single self-contained file under `docs/`, with no external scripts. The four frames in
 `docs/assets/` are de-identified examples that also appear in the qualitative figure of the paper;
-they are the only images in this repository, and the datasets themselves are not redistributed.
+they and the rendered paper figures under `paper_figures/out/` are the only images in this repository,
+and the datasets themselves are not redistributed.
 
 ## What this repository contains
 
 This is **not a standalone package**. TAC is implemented as an addition to the
 [Adaptive Teacher](https://github.com/facebookresearch/adaptive_teacher) detection codebase, and the
 files below are meant to be dropped into a clone of it. See `NOTICE` for attribution and licensing.
+
+Known gaps, stated so that nobody looks for them: `tta_canon.py` imports `AnatPrior` from
+`adapteacher/engine/tta_distill.py` (the prior loader) and `GeneralizedRCNNWithTTA` from
+`adapteacher/modeling/tta_aug.py` (the 18-view fusion of T^3A); neither file is included, the second because
+it is not ours to publish. The `Trainer == 'canon'` dispatch in `train_net.py`, the dataset registrations,
+the `RetinaNetTTA` meta-architecture of the one-stage configuration, the Faster R-CNN source configuration
+and the trainers of the reimplemented baselines (`iouf`, `amrod`, `distill`, ...) named in
+`runners/run_baselines.sh` are also not included. The runners expect the conda environment at
+`${TAC_SCRATCH}/miniconda3/envs/ttaod`.
 
 ```
 adapteacher/engine/tta_canon.py       the TAC test-time loop: ANI, UVA, view construction, fusion
@@ -117,10 +127,13 @@ directory holding `datasets/`, `output/` and `results/`; it defaults to the curr
 4. **Baselines.** `runners/run_baselines.sh` runs the test-time adaptation baselines with the
    configuration search described in the paper; `runners/run_compose.sh` runs them on the canonicalized
    input.
-5. **Analysis and tables.** The scripts in `analysis/` each write a JSON under `output/analysis/`, and
-   the generators in `paper_figures/` turn those into the table bodies and figures; the outputs of the
-   released run are kept in `paper_figures/tables/` and `paper_figures/out/`. Point `TAC_ROOT` at
-   the project root first:
+5. **Analysis and tables.** The scripts in `analysis/` each write a JSON under `output/analysis/`. The
+   generators in `paper_figures/` read those summaries from the dated paths set at the top of
+   `paper_figures/tabdata.py`, `pubstyle.py` and `gen_gap_numbers.py` (under `$TAC_ROOT/results/`), so
+   copy or link the analysis outputs there first; the outputs of the released run are kept in
+   `paper_figures/tables/` and `paper_figures/out/`. The overview figure
+   (`fig2_overview`) is a vector drawing and is kept as an output only.
+   Point `TAC_ROOT` at the project root first:
 
    ```bash
    TAC_ROOT=/path/to/project python paper_figures/gen_tables_reviewer.py
@@ -132,7 +145,8 @@ directory holding `datasets/`, `output/` and `results/`; it defaults to the curr
 
 The fetal ultrasound datasets are not redistributed here. Availability is stated in the paper's data
 availability section; requests go to the data owners, under the ethics constraints described there.
-The code expects COCO-format annotations under `datasets/<plane>/<domain>/{train,val,test}.json`.
+The code expects COCO-format annotations under `datasets/<dataset>/<domain>/{train,val,test}.json`, with
+the dataset directory names used in `tools/anat_prior.py` and `analysis/make_factor_files.py`.
 
 ## Citation
 

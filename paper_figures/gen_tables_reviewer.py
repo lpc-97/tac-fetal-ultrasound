@@ -123,7 +123,7 @@ _BL = [  # (label, row, collection, reference, timing key, compute block)
     ("blind: 3 scales \\{600, 800, 1000\\}, WBF", "ss_fix3_wbf", R, "tac", None, 3), ("blind: 3 scales, WBF + re-scoring", "ss_fix3_wbf_ar", R, "tac", "blind3_ar", 3),
     ("most confident of 3 scales (1 view output)", "ss_conf3", R, "tac", None, 3),
     ("\\tac-3 (ours)", "tac", R, None, "tac3", 3), ("\\tac-3, 2 rounds (ours)", "tac_rounds2", R, "tac", "tac3_2r", 3),
-    ("blind: 3 scales $\\times$ flip, WBF + re-scoring", "ss_fix3f_wbf_ar", R, "u7_k17", None, 7),
+    ("blind: 3 scales \\{700, 800, 900\\} $\\times$ flip, WBF + re-scoring", "ss_fix3f_wbf_ar", R, "u7_k17", None, 7),
     ("blind: 7 scales \\{500--1200\\}, WBF", "ss_fix7_wbf", R, "u7_k17", None, 7), ("blind: 7 scales, WBF + re-scoring", "ss_fix7_wbf_ar", R, "u7_k17", "blind7_ar", 7),
     ("most confident of 7 scales (1 view output)", "ss_conf7", R, "u7_k17", None, 7),
     ("\\tac, fixed bracket $\\pm15\\%$ (control)", "tac_v7", R, "u7_k17", None, 7),

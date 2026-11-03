@@ -12,6 +12,7 @@ results/
 *.jpg
 *.jpeg
 *.png
+*.pdf
 
 # except the four de-identified frames the project page animates
 !docs/assets/*.jpg
@@ -19,7 +20,6 @@ results/
 # except the regenerated paper figures
 !paper_figures/out/*.pdf
 !paper_figures/out/*.png
-*.pdf
 *.dcm
 *.nii
 *.nii.gz
