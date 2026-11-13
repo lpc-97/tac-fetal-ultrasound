@@ -62,6 +62,17 @@ def rows(table):
     return out
 
 
+def tac_single_view():
+    """The single canonicalized view at the TAC factor, as one row in the format of reviewer_summary.json (m6 keyed '42').
+    Since 2026-11-10 every table and figure takes it from the canonical-view-only run of Table 6(a) (tac_flast: FUSION last,
+    the un-flipped canonical view is output and re-scored, config.yaml checked on the server), so that Table 6(a), Table S10,
+    Figure 6(a) and Figure 8(a) print the same 51.57. The reviewer row tac_1v (FLIP False) is the same computation in a
+    separate run: 51.50/51.71/51.48 against 51.50/51.71/51.50 per seed, 51.56 against 51.57 (GPU nondeterminism)."""
+    r = rows("heart4cc_fusion_views")["TAC canonical view only (no fusion)"]
+    return {"mean": r["mean"], "std": r["std"], "ap50": r["ap50"], "views": r["views"],
+            "m6": {(s[1:] if s.startswith("s") else s): v for s, v in r["m6"].items()}}
+
+
 def paired(a, b):
     """paired delta a-b over seeds: (mean, 95% half-width, significant)"""
     d = [a["m6"][s] - b["m6"][s] for s in a["m6"] if s in b["m6"]]

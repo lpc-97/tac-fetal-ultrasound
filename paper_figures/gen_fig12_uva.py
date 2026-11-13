@@ -12,7 +12,7 @@ import os
 
 import numpy as np
 import matplotlib.pyplot as plt
-from pubstyle import C, OURS, RES, panel_label, save
+from pubstyle import C, OURS, OURS_TINT, RES, W_FULL, panel_label, layout, save
 
 REV = os.path.join(RES, "reviewer")
 U = json.load(open(os.path.join(REV, "uncert_summary.json"), encoding="utf-8"))
@@ -28,37 +28,38 @@ LAB = {"tac": "TAC-3", "tac_v7": "TAC-7, fixed bracket", "tac_v11": "TAC-11, fix
        "u7_k17": "TAC-7, quadrature (ours)", "ua_t08": "UVA, gated ($\\tau_s$=0.08)", "ua_t12": "UVA, gated ($\\tau_s$=0.12)"}
 GRAY = C["gray"]
 
-fig, axes = plt.subplots(1, 3, figsize=(6.9, 2.7), gridspec_kw={"width_ratios": [1.15, 1.0, 0.95], "wspace": 0.42})
+fig, axes = plt.subplots(1, 3, figsize=(W_FULL, 2.6), gridspec_kw={"width_ratios": [1.15, 1.0, 0.95]})
 audit = {}
 
 # ---------------------------------------------------------------- (a) test: AP vs mean forward passes
 ax = axes[0]
 curve = [(T[k]["views"], T[k]["mean"]) for k in ("tac", "ua_t12", "ua_t08", "u7_k17")]
-ax.plot([p[0] for p in curve], [p[1] for p in curve], color=OURS, lw=0.8, alpha=0.7, zorder=2)
+ax.plot([p[0] for p in curve], [p[1] for p in curve], color=OURS, lw=1.0, alpha=0.7, zorder=2)
 style = {"tac": (C["ink2"], "o"), "tac_v7": (GRAY, "s"), "tac_v11": (GRAY, "s"),
          "u7_k17": (OURS, "*"), "ua_t08": (OURS, "D"), "ua_t12": (OURS, "D")}
-# text placement: (dx in views, dy in AP, ha, va) relative to the point
-ann = {"tac": (0.35, 0.0, "left", "center"), "ua_t12": (0.35, -0.02, "left", "center"),
-       "ua_t08": (0.3, -0.2, "left", "top"), "u7_k17": (0.0, 0.2, "center", "bottom"),
-       "tac_v7": (0.4, -0.12, "left", "center"), "tac_v11": (0.0, -0.22, "center", "top")}
+# label offsets in points relative to the marker: (dx, dy, ha, va)
+ann = {"tac": (7, 0, "left", "center"), "ua_t12": (7, -3, "left", "center"),
+       "ua_t08": (7, -11, "left", "center"), "u7_k17": (-7, 5, "right", "bottom"),
+       "tac_v7": (8, -2, "left", "center"), "tac_v11": (0, 10, "center", "bottom")}
+SHORT = {"tac": "TAC-3", "ua_t12": "gated, $\\tau_s$ = 0.12", "ua_t08": "gated, $\\tau_s$ = 0.08",
+         "u7_k17": "TAC-7 (ours)", "tac_v7": "TAC-7, fixed", "tac_v11": "TAC-11, fixed"}
 for k in ("tac", "ua_t12", "ua_t08", "u7_k17", "tac_v7", "tac_v11"):
     col, mk = style[k]
     r = T[k]
-    ax.errorbar(r["views"], r["mean"], yerr=r["std"], color=col, marker=mk, ms=7 if mk == "*" else 4.2, ls="none",
+    ax.errorbar(r["views"], r["mean"], yerr=r["std"], color=col, marker=mk, ms=7.5 if mk == "*" else 4.2, ls="none",
                 capsize=1.6, elinewidth=0.7, zorder=4)
     dx, dy, ha, va = ann[k]
-    txt = LAB[k].replace("quadrature (ours)", "quadrature\n(ours)")
-    ax.text(r["views"] + dx, r["mean"] + dy, txt, ha=ha, va=va, fontsize=7, color=C["ink"] if col != GRAY else C["ink2"],
-            linespacing=1.0)
+    ax.annotate(SHORT[k], xy=(r["views"], r["mean"]), xytext=(dx, dy), textcoords="offset points", ha=ha, va=va, fontsize=7,
+                color=OURS if k == "u7_k17" else (C["ink"] if col != GRAY else C["ink2"]),
+                fontweight="bold" if k == "u7_k17" else "normal", linespacing=1.0)
     audit[("a", k)] = (r["views"], r["mean"], r["std"])
 ax.set_xticks([3, 4, 5, 6, 7, 11])
-ax.set_xlim(2.4, 13.6)
-ax.set_xlabel("forward passes per image (mean)")
+ax.set_xlim(2.4, 13.2)
+ax.set_xlabel("mean forward passes per image")
 ax.set_ylabel("mean test AP (%)")
 ys = [T[k]["mean"] for k in style]
 ax.set_ylim(min(ys) - 0.3, max(ys) + 0.5)
-ax.text(0.97, 0.04, "test, 3 seeds; error bars: std", transform=ax.transAxes, ha="right", va="bottom", fontsize=7, color=C["ink2"])
-panel_label(ax, "(a)", x=-0.22, y=1.08)
+panel_label(ax, "(a)", "Accuracy against cost (test)")
 
 # ---------------------------------------------------------------- (b) validation sweep of tau_s
 ax = axes[1]
@@ -69,20 +70,23 @@ ap = [V[k]["AP"] for _, k in sweep]
 views = [V[k]["views"] for _, k in sweep]
 audit["b_sweep"] = list(zip([k for _, k in sweep], taus, ap, views))
 audit["b_ref"] = {"tac": V["tac"]["AP"], "tac_v7": V["tac_v7"]["AP"]}
-ax.plot(taus, ap, color=OURS, marker="o", ms=4, lw=1.1, label="UVA, gated (val AP)", zorder=4)
-for t, a, v in zip(taus, ap, views):
-    ax.text(t + 0.003, a + 0.04, f"{v:.2f}", ha="left", va="bottom", fontsize=7, color=C["ink2"])
-ax.axhline(V["tac_v7"]["AP"], color=GRAY, lw=0.9, ls="--", label="TAC-7, fixed bracket (val)")
-ax.axhline(V["tac"]["AP"], color=C["ink2"], lw=0.9, ls=":", label="TAC-3 (val)")
+ax.axhline(V["tac_v7"]["AP"], color=GRAY, lw=0.9, ls="--", label="TAC-7, fixed bracket")
+ax.axhline(V["tac"]["AP"], color=C["ink2"], lw=0.9, ls=":", label="TAC-3")
+ax.plot(taus, ap, color=OURS, marker="o", ms=4, lw=1.2, label="gated", zorder=4)
+ax.plot([t for t in taus if round(t, 2) in (0.08, 0.12)], [a_ for t, a_ in zip(taus, ap) if round(t, 2) in (0.08, 0.12)], ls="none", marker="o", ms=5, color=OURS, mec=C["ink"], mew=0.8, zorder=5)  # the two thresholds reported on the test split
+for i, (t, a_, v) in enumerate(zip(taus, ap, views)):
+    below = i == 1  # this label would sit on the reference line of the fixed bracket
+    ax.annotate(f"{v:.2f}", xy=(t, a_), xytext=(-4, -4) if below else (4, 4), textcoords="offset points", ha="right" if below else "left",
+                va="top" if below else "bottom", fontsize=7, color=C["ink2"])
 ax.set_xlabel("gating threshold $\\tau_s$")
-ax.set_ylabel("mean val AP (%)")
+ax.set_ylabel("mean validation AP (%)")
 ax.set_xticks(taus)
-ax.set_xticklabels([f"{t:.2f}" for t in taus], rotation=35, ha="right", rotation_mode="anchor")
-ax.tick_params(axis="x", labelsize=7)
+ax.set_xticklabels([f"{t:.2f}" for t in taus])
+ax.set_xlim(taus[0] - 0.012, taus[-1] + 0.022)
 ax.set_ylim(min(ap + [V["tac"]["AP"]]) - 0.2, max(ap + [V["tac_v7"]["AP"]]) + 0.65)
-ax.legend(loc="upper right", fontsize=7, handlelength=1.5, labelspacing=0.25, borderaxespad=0.2)
-ax.text(0.97, 0.62, "labels: mean forward\npasses per image", transform=ax.transAxes, ha="right", va="top", fontsize=7, color=C["ink2"])
-panel_label(ax, "(b)", x=-0.22, y=1.08)
+h, l = ax.get_legend_handles_labels()
+ax.legend([h[2], h[0], h[1]], [l[2], l[0], l[1]], loc="upper right", handlelength=1.8)
+panel_label(ax, "(b)", "Gating threshold (validation)")
 
 # ---------------------------------------------------------------- (c) gain of the fixed bracket per quartile of s
 ax = axes[2]
@@ -94,23 +98,26 @@ mean_s = [Q["bins"][q]["mean_s"] for q in qnames]
 cells = [list(Q["bins"][q]["delta_per_cell"].values()) for q in qnames]
 audit["c"] = {q: (Q["bins"][q]["delta_tac7_tac3"], Q["bins"][q]["mean_ndet"], Q["bins"][q]["mean_s"],
                   Q["bins"][q]["n_images"], len(Q["bins"][q]["delta_per_cell"])) for q in qnames}
-ax.bar(x, gain, 0.58, color=OURS, alpha=0.85, zorder=2, label="mean over 18 direction–seed cells")
+ax.bar(x, gain, 0.6, color=OURS_TINT, lw=0, zorder=2, label="mean over 18 cells")
+ax.hlines(gain, x - 0.3, x + 0.3, color=OURS, lw=1.4, zorder=3)
 rng = np.random.default_rng(0)
 for i, cv in enumerate(cells):
     jit = rng.uniform(-0.17, 0.17, size=len(cv))
-    ax.plot(x[i] + jit, cv, ls="none", marker="o", ms=2.4, mfc="white", mec=C["ink"], mew=0.5, zorder=4,
+    ax.plot(x[i] + jit, cv, ls="none", marker="o", ms=2.6, mfc="white", mec=C["ink2"], mew=0.5, zorder=4,
             label="direction–seed cell" if i == 0 else None)
 ymax = max(max(c) for c in cells)
 ax.set_xticks(x)
-ax.set_xticklabels([f"Q{i + 1}\n{s:.3f}\n{n:.1f}" for i, (s, n) in enumerate(zip(mean_s, ndet))], fontsize=7)
+ax.set_xticklabels([f"Q{i + 1}\n{s:.3f}\n{n:.1f}" for i, (s, n) in enumerate(zip(mean_s, ndet))])
+ax.tick_params(axis="x", length=0)
 ax.set_xlabel("quartile of $s$ (narrow → wide)\nmean $s$ / first-pass candidates per image")
-ax.set_ylabel("gain of TAC-7 (fixed) over TAC-3 (AP)")
+ax.set_ylabel("gain of TAC-7 (fixed)\nover TAC-3 (AP)")
 ax.set_xlim(-0.6, len(qnames) - 0.4)
 ax.set_ylim(0, ymax + 1.15)
-ax.legend(loc="upper left", fontsize=7, handlelength=1.0, labelspacing=0.25, borderaxespad=0.2)
-panel_label(ax, "(c)", x=-0.24, y=1.08)
+ax.legend(loc="upper left", handlelength=1.0)
+panel_label(ax, "(c)", "Gain of the bracket by spread")
 
-save(fig, "fig12_uva")
+layout(fig)
+save(fig, "fig12_uva", tight=False)
 
 # audit print-out: every number plotted, straight from the files
 print("(a) test rows (views, mean AP, std):")

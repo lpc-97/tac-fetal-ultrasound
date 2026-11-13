@@ -316,3 +316,6 @@ NUM["per_class"] = QC["per_class"]
 NUM["source_models"] = {k: v["val_AP_final"] for k, v in QC["source_models"].items()}
 json.dump(NUM, open(os.path.join(OUTD, "numbers.json"), "w"), indent=1)
 print("numbers.json:", len(NUM), "entries")
+
+import table_style  # presentation pass over the generated bodies (no value changes)
+table_style.restyle_dir()

@@ -61,10 +61,13 @@ def write(name, lines):
     open(os.path.join(OUTD, name), "w", encoding="utf-8").write("\n".join(lines) + "\n"); print("wrote", name)
 
 
+# the TAC single view of the scale chain is the canonical-view-only run of Table 6(a) (see tabdata.tac_single_view, 2026-11-10)
+from tabdata import tac_single_view  # noqa: E402
+R["tac_1v"] = tac_single_view()
 src, orc1, orc3 = R["source"], R["fac_oracle_1v"], R["fac_oracle"]
 # ------------------------------------------------------------------ A. scale chain
 L = []
-for lab, k1, k3 in [("default scale ($s_0$)", "source", None), ("val-selected fixed scale per direction", "fac_valscale_1v", "fac_valscale"), ("stream-level factor (median of TAC factors)", "fac_global_1v", "fac_global"),
+for lab, k1, k3 in [("default scale (800 px)", "source", None), ("val-selected fixed scale per direction", "fac_valscale_1v", "fac_valscale"), ("stream-level factor (median of TAC factors)", "fac_global_1v", "fac_global"),
                     ("TAC per-image factor (ours)", "tac_1v", "tac"), ("oracle per-image factor (GT sizes)", "fac_oracle_1v", "fac_oracle")]:
     a = R[k1]; c = R.get(k3)
     g1 = "--" if k1 == "source" else f"{100 * (a['mean'] - src['mean']) / (orc1['mean'] - src['mean']):.0f}\\%"
@@ -85,8 +88,9 @@ NUM["chain::tac3_2r_vs_oracle3"] = list(paired(R["tac_rounds2"], R["fac_oracle"]
 
 # ------------------------------------------------------------------ B. estimator
 L = []
+EST_BEST = None  # no bold in this table: the rows are alternatives to the estimator, not competitors ranked by AP
 for lab, k in [("median of the votes (no weights, no prior)", "est_median"), ("confidence-weighted mean of votes", "est_confmean"), ("IRLS, class-agnostic (pooled) prior", "est_noclass"), ("IRLS, per-structure prior (ours)", "tac")]:
-    r = R[k]; L.append(f"{lab} & {fm(r, k == 'tac')} & {r['ap50']:.2f} & {'--' if k == 'tac' else fd(r, R['tac'])} \\\\")
+    r = R[k]; L.append(f"{lab} & {fm(r, k == EST_BEST)} & {r['ap50']:.2f} & {'--' if k == 'tac' else fd(r, R['tac'])} \\\\")
     NUM[f"est::{k}"] = {"mean": r["mean"], "std": r["std"], "d_tac": None if k == "tac" else list(paired(r, R["tac"]))}
 write("tab_estimator.tex", L)
 
@@ -312,3 +316,6 @@ if GC:
                                  "n_cells": v["n_cells"],
                                  "n_positive": int(round(v["frac_positive"] * v["n_cells"]))}
 json.dump(NUM, open(os.path.join(OUTD, "numbers_reviewer.json"), "w"), indent=1); print("numbers_reviewer.json", len(NUM))
+
+import table_style  # presentation pass over the generated bodies (no value changes)
+table_style.restyle_dir()
