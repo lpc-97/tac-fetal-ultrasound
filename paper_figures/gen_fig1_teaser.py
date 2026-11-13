@@ -52,8 +52,8 @@ for f, dom, name, cx in FRAMES:
     med = stats[dom + "_train"]["cls"]["LV"]["median"]      # px at short edge 800
     side = med * h / 800.0                                    # px in this frame (its short edge is the height)
     m = 0.05 * h
-    ax.add_patch(Rectangle((h - m - side, h - m - side), side, side, fill=False, ec=C["gold"], lw=1.2, zorder=5))
-    ax.text(h - m, h - m - side - 0.03 * h, f"{med:.0f} px", color=C["gold"], fontsize=7, ha="right", va="bottom", zorder=6,
+    ax.add_patch(Rectangle((h - m - side, h - m - side), side, side, fill=False, ec="#F2C14E", lw=1.2, zorder=5))
+    ax.text(h - m, h - m - side - 0.03 * h, f"{med:.0f} px", color="#F2C14E", fontsize=7, ha="right", va="bottom", zorder=6,
             bbox=dict(facecolor="black", edgecolor="none", pad=0.8, alpha=0.55))
     banner(ax, name, "tl")
     x += H + GAP

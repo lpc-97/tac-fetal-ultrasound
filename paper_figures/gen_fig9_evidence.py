@@ -56,7 +56,7 @@ panel_label(ax, "(b)", "By oracle shift")
 ax = axes[2]
 keys = ["1-2", "3-5", ">5"]; xl = ["1–2", "3–5", ">5"]
 x = np.arange(3); w = 0.2
-for j, (k, lab, col) in enumerate([("source", "source", C["gray"]), ("tac3", "TAC-3", "#F4A261"), ("tac7", "TAC-7, fixed", OURS), ("oracle3", "TAC-3, oracle $f$", C["teal"])]):
+for j, (k, lab, col) in enumerate([("source", "source", C["gray"]), ("tac3", "TAC-3", C["orange"]), ("tac7", "TAC-7, fixed", OURS), ("oracle3", "TAC-3, oracle $f$", C["teal"])]):
     ax.bar(x + (j - 1.5) * w, [FP["ndet"][g][k] for g in keys], w, color=col, label=lab)
 ax.set_xticks(x); ax.set_xticklabels(xl); ax.set_xlabel("first-pass candidates ($p_i \\geq 0.3$)"); ax.set_ylabel("AP on the group (%)"); ax.set_ylim(0, 78)
 ax.tick_params(axis="x", length=0)

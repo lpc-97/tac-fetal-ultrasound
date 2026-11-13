@@ -1,5 +1,5 @@
 """Shared publication style for all paper figures (Information Fusion, elsarticle two-column: 3.35 in single / 6.9 in full).
-Palette = "Ocean Dusk" with coral reserved for our method; Okabe-Ito blue/sky for extra series."""
+Palette: one deep red reserved for our method, a blue family for the multi-view references, ochre and grays."""
 import json
 import os
 
@@ -34,10 +34,12 @@ plt.rcParams.update({
     "axes.axisbelow": True,
 })
 
-C = {"teal": "#264653", "cyan": "#2A9D8F", "gold": "#E9C46A", "orange": "#F4A261", "coral": "#E76F51",
-     "blue": "#0072B2", "sky": "#56B4E9", "gray": "#8C8C8C", "lgray": "#B8C0C8", "ink": "#222222", "ink2": "#555555"}
+# keys keep their historical names; since 2026-11-12: "coral" = deep red of the method, "orange" = its light tint,
+# "teal" / "blue" / "cyan" / "sky" = one blue family from navy to light, "gold" = ochre
+C = {"teal": "#1F3A5F", "cyan": "#5B8DB8", "gold": "#C28F2C", "orange": "#DB8A80", "coral": "#B4282E",
+     "blue": "#2E5E8C", "sky": "#7FA8CC", "gray": "#8C8C8C", "lgray": "#B5B5B5", "ink": "#222222", "ink2": "#555555"}
 OURS = C["coral"]
-OURS_TINT = "#F5C1B3"   # light tint of the method colour, for bars that carry overlaid points
+OURS_TINT = "#E9B7B2"   # light tint of the method colour, for bars that carry overlaid points
 BASE = C["lgray"]
 BEST = C["teal"]
 DOM = {"c1": C["blue"], "c2": C["cyan"], "c3": C["orange"], "ge": C["blue"], "ph": C["cyan"], "sa": C["orange"]}
