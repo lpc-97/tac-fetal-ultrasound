@@ -48,7 +48,7 @@ panel repeats the five beats on four real frames:
 | --- | --- | --- |
 | Heart, four-chamber, center 1 model on a center 3 image | x2.85 | 0 of 9 -> 7 of 9 |
 | Heart, four-chamber, center 3 model on a center 2 image | x0.33 | 0 of 8 -> 8 of 8 |
-| Abdomen, transverse, GE model on a Philips image | x1.57 | 4 of 5 -> 4 of 5, one unmatched box dropped |
+| Abdomen, transverse, Samsung model on a Philips image | x1.57 | 4 of 5 -> 4 of 5, one unmatched box dropped |
 | Spine, sagittal, GE model on a Samsung image | x2.05 | 4 of 4 -> 4 of 4, one unmatched box dropped |
 
 The page is a single self-contained file under `docs/`, with no external scripts. The four frames in
