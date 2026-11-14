@@ -38,10 +38,10 @@ for i, (lab, val, col) in enumerate(steps):
     ax.bar(i, val - Y0, 0.58, bottom=Y0, color=col, lw=0)
     ax.text(i, val + 0.25, f"{val:.2f}", ha="center", va="bottom", fontsize=7, color=C["ink"], fontweight="bold" if i == len(steps) - 1 else "normal")
     if prev is not None:
-        ax.text(i, val + 1.75, f"+{val - prev:.2f}", ha="center", va="bottom", fontsize=6.5, color=C["ink2"])
+        ax.text(i, val + 1.75, f"+{val - prev:.2f}", ha="center", va="bottom", fontsize=7, color=C["ink2"])
     prev = val
 ax.axhline(ind, color=C["ink2"], lw=0.7, ls=(0, (4, 2)))
-ax.text(-0.42, ind + 0.2, "in-domain", ha="left", va="bottom", fontsize=6.5, color=C["ink2"])
+ax.text(-0.42, ind + 0.2, "in-domain", ha="left", va="bottom", fontsize=7, color=C["ink2"])
 ax.set_xticks(range(len(steps))); ax.set_xticklabels([s[0] for s in steps]); ax.tick_params(axis="x", length=0)
 ax.set_xlim(-0.5, len(steps) - 0.5); ax.set_ylim(Y0, Y1); ax.set_yticks(np.arange(44, 63, 4)); ax.set_ylabel("AP (%)")
 panel_label(ax, "(a)", "Modules added in turn")
@@ -55,9 +55,9 @@ for j, (name, k0, k1) in enumerate(pairs):
     a0, s0 = N["compose::" + k0]["AP"]; a1, s1 = N["compose::" + k1]["AP"]
     ax.bar(j - w / 2, a0 - Y0, w, bottom=Y0, color=C["lgray"], lw=0, yerr=s0, error_kw=dict(lw=0.6, capsize=1.5, ecolor=C["ink2"]))
     ax.bar(j + w / 2, a1 - Y0, w, bottom=Y0, color=OURS, lw=0, yerr=s1, error_kw=dict(lw=0.6, capsize=1.5, ecolor=C["ink2"]))
-    ax.text(j - w / 2, a0 + s0 + 0.25, f"{a0:.2f}", ha="center", va="bottom", fontsize=6.5, color=C["ink2"])
-    ax.text(j + w / 2, a1 + s1 + 0.25, f"{a1:.2f}", ha="center", va="bottom", fontsize=6.5, color=C["ink"])
-    ax.text(j + w / 2, a1 + s1 + 1.6, f"+{a1 - a0:.2f}", ha="center", va="bottom", fontsize=6.5, color=OURS, fontweight="bold")
+    ax.text(j - w / 2, a0 + s0 + 0.25, f"{a0:.2f}", ha="center", va="bottom", fontsize=7, color=C["ink2"])
+    ax.text(j + w / 2, a1 + s1 + 0.25, f"{a1:.2f}", ha="center", va="bottom", fontsize=7, color=C["ink"])
+    ax.text(j + w / 2, a1 + s1 + 1.6, f"+{a1 - a0:.2f}", ha="center", va="bottom", fontsize=7, color=OURS, fontweight="bold")
 ax.set_xticks(range(len(pairs))); ax.set_xticklabels([p[0] for p in pairs]); ax.tick_params(axis="x", length=0)
 ax.set_xlim(-0.6, len(pairs) - 0.4); ax.set_ylim(Y0, Y1); ax.set_yticks(np.arange(44, 63, 4)); ax.set_ylabel("AP (%)")
 ax.legend(handles=[Patch(facecolor=C["lgray"], label="original input"), Patch(facecolor=OURS, label="canonicalized input")],
