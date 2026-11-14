@@ -1,6 +1,6 @@
 # Test-time Anatomical Canonicalization (TAC)
 
-Reference implementation and analysis code for *Trustworthy cross-domain ultrasound structure detection
+Reference implementation and analysis code for *Cross-domain ultrasound structure detection
 through anatomy-guided nuisance inference and uncertainty-aware evidence fusion*.
 
 TAC adapts a frozen anatomical structure detector online, one unlabeled image at a time, without
@@ -152,7 +152,7 @@ the dataset directory names used in `tools/anat_prior.py` and `analysis/make_fac
 
 ```bibtex
 @article{tac2026,
-  title   = {Trustworthy cross-domain ultrasound structure detection through anatomy-guided nuisance
+  title   = {Cross-domain ultrasound structure detection through anatomy-guided nuisance
              inference and uncertainty-aware evidence fusion},
   journal = {Information Fusion},
   year    = {2026}
