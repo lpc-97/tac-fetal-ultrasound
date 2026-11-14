@@ -132,7 +132,7 @@ directory holding `datasets/`, `output/` and `results/`; it defaults to the curr
    `paper_figures/tabdata.py`, `pubstyle.py` and `gen_gap_numbers.py` (under `$TAC_ROOT/results/`), so
    copy or link the analysis outputs there first; the outputs of the released run are kept in
    `paper_figures/tables/` and `paper_figures/out/`. The overview and the two
-   module schematics (`fig2_overview`, `fig_ani`, `fig_sdf`) are vector drawings and are kept as outputs only.
+   schematics (`fig1_teaser`, `fig2_overview`, `fig_ani`, `fig_sdf`) are vector drawings and are kept as outputs only.
    Point `TAC_ROOT` at the project root first:
 
    ```bash
